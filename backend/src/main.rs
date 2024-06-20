@@ -4,69 +4,28 @@ extern crate rocket;
 use std::hash::RandomState;
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
+
 use chrono::{Duration, Local};
 use dotenvy::dotenv;
+use rand::{random, RngCore};
+use reqwest::StatusCode;
+use rocket::{Request, Response, State, time};
 use rocket::http::{ContentType, Cookie, CookieJar, SameSite, Status};
 use rocket::response::{Redirect, Responder};
 use rocket::serde::json::Json;
-use rocket::{Request, Response, State};
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::Deserialize;
 use sqlx::query;
 use thiserror::Error;
-use rand::{random, RngCore};
-use reqwest::StatusCode;
 
 use crate::app::App;
+use crate::errors::ApiError;
 
 mod minecraft;
 mod app;
+mod errors;
 
 struct Discord;
-
-#[derive(Debug, Error)]
-pub enum ApiError {
-    #[error("SQL error: {0}")]
-    SQL(#[from] sqlx::Error),
-    #[error("HTTP request error: {0}")]
-    Request(#[from] reqwest::Error),
-    #[error("OAuth token error: {0}")]
-    TokenError(#[from] rocket_oauth2::Error),
-    #[error("You're not authorized!")]
-    Unauthorized,
-    #[error("Attempted to get a non-none value but found none")]
-    OptionError,
-    #[error("Attempted to parse a number to an integer but errored out: {0}")]
-    ParseIntError(#[from] std::num::TryFromIntError),
-    #[error("Encountered an error trying to convert an infallible value: {0}")]
-    FromRequestPartsError(#[from] std::convert::Infallible),
-}
-
-#[rocket::async_trait]
-impl<'r> Responder<'r, 'static> for ApiError {
-    fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
-        let response = match self {
-            Self::SQL(e) => (Status::InternalServerError, e.to_string()),
-            Self::Request(e) => (Status::InternalServerError, e.to_string()),
-            Self::TokenError(e) => (Status::InternalServerError, e.to_string()),
-            Self::Unauthorized => (Status::Unauthorized, "Unauthorized!".to_string()),
-            Self::OptionError => (
-                Status::InternalServerError,
-                "Attempted to get a non-none value but found none".to_string(),
-            ),
-            Self::ParseIntError(e) => (Status::InternalServerError, e.to_string()),
-            Self::FromRequestPartsError(e) => (Status::InternalServerError, e.to_string()),
-        };
-
-        let (status, message) = response;
-        let response = Response::build()
-            .status(status)
-            .sized_body(message.len(), Cursor::new(message))
-            .finalize();
-
-        Ok(response)
-    }
-}
 
 #[derive(Deserialize)]
 struct Whitelist {
@@ -117,13 +76,12 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     let mut u128_pool = [0u8; 16];
     rand::thread_rng().fill_bytes(&mut u128_pool);
 
-    let session_id = u128::from_le_bytes(u128_pool);
-
-    let cookie = Cookie::build(("session_id", session_id.to_string())).build();
+    let session_id = u128::from_le_bytes(u128_pool).to_string();
 
     cookies.add_private(
-        Cookie::build(("token", token.access_token().to_string()))
+        Cookie::build(("session_id", session_id.clone()))
             .same_site(SameSite::Lax)
+            .max_age(time::Duration::seconds(secs))
             .build()
     );
 
@@ -141,6 +99,15 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     query!("INSERT INTO users (id)
             VALUES ($1)
             ON CONFLICT (id) DO NOTHING;", user_id)
+        .execute(&app.db)
+        .await
+        .unwrap();
+
+    query!("INSERT INTO sessions (user_id, session_id, expires_at)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id) DO UPDATE SET
+            session_id = excluded.session_id,
+            expires_at = excluded.expires_at", user_id, session_id, max_age.and_utc())
         .execute(&app.db)
         .await
         .unwrap();
