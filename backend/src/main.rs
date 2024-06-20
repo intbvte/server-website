@@ -18,7 +18,7 @@ use crate::errors::ApiError;
 mod minecraft;
 mod app;
 mod errors;
-mod session;
+mod sessionManager;
 
 struct Discord;
 
@@ -94,7 +94,7 @@ async fn discord_login(app: &State<App>, oauth2: OAuth2<Discord>, cookies: &Cook
                 .await
                 .unwrap();
 
-            let session_cookie = session::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
+            let session_cookie = sessionManager::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
             cookies.add_private(session_cookie);
 
             return Redirect::to("/");
@@ -105,8 +105,28 @@ async fn discord_login(app: &State<App>, oauth2: OAuth2<Discord>, cookies: &Cook
 }
 
 #[get("/logout/discord")]
-fn discord_logout(cookies: &CookieJar<'_>) -> Redirect {
-    cookies.remove_private("session_id");
+async fn discord_logout(app: &State<App>, cookies: &CookieJar<'_>) -> Redirect {
+    let session_cookie = cookies.get_private("session_id");
+
+    if let Some(cookie) = session_cookie {
+        let session_id = cookie.value();
+        
+        let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
+            .fetch_optional(&app.db)
+            .await
+            .unwrap()
+            .unwrap();
+        
+        query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
+            .execute(&app.db)
+            .await
+            .unwrap();
+
+        sessionManager::revoke_discord_token(app, session.access_token).await;
+        sessionManager::revoke_discord_token(app, session.refresh_token).await;
+
+        cookies.remove_private("session_id");
+    }
 
     Redirect::to("/")
 }
@@ -135,7 +155,7 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
         .await
         .unwrap();
 
-    let session_cookie = session::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
+    let session_cookie = sessionManager::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
     cookies.add_private(session_cookie);
 
     //fixme change redirect location

@@ -1,3 +1,4 @@
+use std::env;
 use chrono::{Duration, Local};
 use rand::RngCore;
 use rocket::{State, time};
@@ -43,4 +44,17 @@ pub async fn generate_session_with_callback<'a>(app: &State<App>, discord_callba
         .same_site(SameSite::Lax)
         .max_age(time::Duration::seconds(secs))
         .build()
+}
+
+pub async fn revoke_discord_token(app: &State<App>, token: String) {
+    app.https.post("https://discord.com/api/oauth2/token/revoke")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .basic_auth(
+            env::var("DISCORD_CLIENT_ID").expect("Missing client id"),
+            Some(env::var("DISCORD_CLIENT_SECRET").expect("Missing client secret")),
+        )
+        .body(format!("token={}", token))
+        .send()
+        .await
+        .unwrap();
 }
