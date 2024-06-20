@@ -1,17 +1,12 @@
 #[macro_use]
 extern crate rocket;
 
-use std::hash::RandomState;
-use std::io::Cursor;
-use std::sync::{Arc, Mutex};
+use std::env;
 
-use chrono::{Duration, Local};
 use dotenvy::dotenv;
-use rand::{random, RngCore};
-use reqwest::StatusCode;
-use rocket::{Request, Response, State, time};
-use rocket::http::{ContentType, Cookie, CookieJar, SameSite, Status};
-use rocket::response::{Redirect, Responder};
+use rocket::State;
+use rocket::http::{CookieJar, Status};
+use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::Deserialize;
@@ -23,6 +18,7 @@ use crate::errors::ApiError;
 mod minecraft;
 mod app;
 mod errors;
+mod session;
 
 struct Discord;
 
@@ -35,7 +31,15 @@ struct Whitelist {
 struct DiscordCallback {
     id: String,
     username: String,
-    avatar: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct DiscordAccessTokenResponse {
+    access_token: String,
+    _token_type: String,
+    expires_in: i64,
+    refresh_token: String,
+    _scope: String,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -59,9 +63,43 @@ async fn rocket() -> _ {
 }
 
 #[get("/login/discord")]
-fn discord_login(oauth2: OAuth2<Discord>, cookies: &CookieJar<'_>) -> Redirect {
-    let session = cookies.get_private("session_id");
+async fn discord_login(app: &State<App>, oauth2: OAuth2<Discord>, cookies: &CookieJar<'_>) -> Redirect {
+    let session_cookie = cookies.get_private("session_id");
 
+    if let Some(cookie) = session_cookie {
+        let session_id = cookie.value().to_owned();
+
+        let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
+            .fetch_optional(&app.db)
+            .await
+            .unwrap();
+
+        if let Some(session) = session {
+            let req = app.https.post("https://discord.com/api/oauth2/token")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .basic_auth(
+                    env::var("DISCORD_CLIENT_ID").expect("Missing client id"),
+                    Some(env::var("DISCORD_CLIENT_SECRET").expect("Missing client secret")),
+                )
+                .body(format!("grant_type=refresh_token&refresh_token={}", session.refresh_token))
+                .send()
+                .await
+                .unwrap()
+                .json::<DiscordAccessTokenResponse>()
+                .await
+                .unwrap();
+
+            query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
+                .execute(&app.db)
+                .await
+                .unwrap();
+
+            let session_cookie = session::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
+            cookies.add_private(session_cookie);
+
+            return Redirect::to("/");
+        }
+    };
 
     oauth2.get_redirect(cookies, &["identify"]).unwrap()
 }
@@ -79,22 +117,6 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
         return Err(ApiError::OptionError);
     };
 
-    let secs: i64 = secs.try_into().unwrap();
-
-    let max_age = Local::now().naive_local() + Duration::seconds(secs);
-
-    let mut u128_pool = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut u128_pool);
-
-    let session_id = u128::from_le_bytes(u128_pool).to_string();
-
-    cookies.add_private(
-        Cookie::build(("session_id", session_id.clone()))
-            .same_site(SameSite::Lax)
-            .max_age(time::Duration::seconds(secs))
-            .build()
-    );
-
     let user = app.https.get("https://discord.com/api/users/@me")
         .header("Authorization", format!("Bearer {}", token.access_token()))
         .send()
@@ -106,19 +128,15 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 
     let user_id = user.id.parse::<i64>().expect("Failed to read user.id as a i64");
 
-    query!("INSERT INTO users (discord_id, discord_username, discord_avatar)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (discord_id) DO NOTHING;", user_id, user.username, user.avatar)
+    query!("INSERT INTO users (discord_id, discord_username)
+            VALUES ($1, $2)
+            ON CONFLICT (discord_id) DO NOTHING;", user_id, user.username)
         .execute(&app.db)
         .await
         .unwrap();
 
-    query!("INSERT INTO sessions (user_id, session_id, expires_at, access_token, refresh_token)
-            VALUES ($1, $2, $3, $4, $5)",
-        user_id, session_id, max_age.and_utc(), token.access_token(), token.refresh_token())
-        .execute(&app.db)
-        .await
-        .unwrap();
+    let session_cookie = session::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
+    cookies.add_private(session_cookie);
 
     //fixme change redirect location
     Ok(Redirect::to("/"))
