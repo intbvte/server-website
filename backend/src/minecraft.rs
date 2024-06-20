@@ -1,9 +1,11 @@
 use std::env;
+
 use rocket::http::Status;
 use rocket::State;
+
 use crate::app::App;
 
-pub async fn run_command<'a>(app: &State<App>, command: String, success_message: &str, error_message: String) -> (Status, &'a str) {
+pub async fn run_command(app: &State<App>, command: String, success_message: &'static str, error_message: String) -> (Status, &'static str) {
     let server_id = env::var("PTERODACTYL_SERVER_ID").expect("Missing Required Env Var PTERODACTYL_SERVER_ID");
 
     let response = app.pterodactyl.get_server(server_id)
