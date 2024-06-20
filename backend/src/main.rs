@@ -2,13 +2,14 @@
 extern crate rocket;
 
 use std::hash::RandomState;
+use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use chrono::{Duration, Local};
 use dotenvy::dotenv;
-use rocket::http::{Cookie, CookieJar, SameSite, Status};
+use rocket::http::{ContentType, Cookie, CookieJar, SameSite, Status};
 use rocket::response::{Redirect, Responder};
 use rocket::serde::json::Json;
-use rocket::{Request, State};
+use rocket::{Request, Response, State};
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::Deserialize;
 use sqlx::query;
@@ -41,22 +42,29 @@ pub enum ApiError {
     FromRequestPartsError(#[from] std::convert::Infallible),
 }
 
-impl<'r, 'o: 'r> Responder<'r, 'o> for ApiError {
-    fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'o> {
+#[rocket::async_trait]
+impl<'r> Responder<'r, 'static> for ApiError {
+    fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
         let response = match self {
-            Self::SQL(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            Self::Request(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            Self::TokenError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            Self::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized!".to_string()),
+            Self::SQL(e) => (Status::InternalServerError, e.to_string()),
+            Self::Request(e) => (Status::InternalServerError, e.to_string()),
+            Self::TokenError(e) => (Status::InternalServerError, e.to_string()),
+            Self::Unauthorized => (Status::Unauthorized, "Unauthorized!".to_string()),
             Self::OptionError => (
-                StatusCode::INTERNAL_SERVER_ERROR,
+                Status::InternalServerError,
                 "Attempted to get a non-none value but found none".to_string(),
             ),
-            Self::ParseIntError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            Self::FromRequestPartsError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::ParseIntError(e) => (Status::InternalServerError, e.to_string()),
+            Self::FromRequestPartsError(e) => (Status::InternalServerError, e.to_string()),
         };
 
-        response
+        let (status, message) = response;
+        let response = Response::build()
+            .status(status)
+            .sized_body(message.len(), Cursor::new(message))
+            .finalize();
+
+        Ok(response)
     }
 }
 
