@@ -103,11 +103,9 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
         .await
         .unwrap();
 
-    query!("INSERT INTO sessions (user_id, session_id, expires_at)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (user_id) DO UPDATE SET
-            session_id = excluded.session_id,
-            expires_at = excluded.expires_at", user_id, session_id, max_age.and_utc())
+    query!("INSERT INTO sessions (user_id, session_id, expires_at, access_token, refresh_token)
+            VALUES ($1, $2, $3, $4, $5)",
+        user_id, session_id, max_age.and_utc(), token.access_token(), token.refresh_token())
         .execute(&app.db)
         .await
         .unwrap();
