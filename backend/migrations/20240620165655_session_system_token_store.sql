@@ -1,5 +1,0 @@
-ALTER TABLE sessions
-    ADD COLUMN IF NOT EXISTS access_token VARCHAR;
-
-ALTER TABLE sessions
-    ADD COLUMN IF NOT EXISTS refresh_token VARCHAR

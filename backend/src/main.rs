@@ -16,7 +16,6 @@ use rocket::serde::json::Json;
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::Deserialize;
 use sqlx::query;
-use thiserror::Error;
 
 use crate::app::App;
 use crate::errors::ApiError;
@@ -36,6 +35,7 @@ struct Whitelist {
 struct DiscordCallback {
     id: String,
     username: String,
+    avatar: Option<String>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -54,13 +54,23 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_callback, minecraft_whitelist, minecraft_whitelist_remove])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_whitelist, minecraft_whitelist_remove])
         .attach(OAuth2::<Discord>::fairing("discord"))
 }
 
 #[get("/login/discord")]
 fn discord_login(oauth2: OAuth2<Discord>, cookies: &CookieJar<'_>) -> Redirect {
+    let session = cookies.get_private("session_id");
+
+
     oauth2.get_redirect(cookies, &["identify"]).unwrap()
+}
+
+#[get("/logout/discord")]
+fn discord_logout(cookies: &CookieJar<'_>) -> Redirect {
+    cookies.remove_private("session_id");
+
+    Redirect::to("/")
 }
 
 #[get("/auth/discord")]
@@ -96,9 +106,9 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 
     let user_id = user.id.parse::<i64>().expect("Failed to read user.id as a i64");
 
-    query!("INSERT INTO users (id)
-            VALUES ($1)
-            ON CONFLICT (id) DO NOTHING;", user_id)
+    query!("INSERT INTO users (discord_id, discord_username, discord_avatar)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (discord_id) DO NOTHING;", user_id, user.username, user.avatar)
         .execute(&app.db)
         .await
         .unwrap();
