@@ -18,14 +18,9 @@ use crate::errors::ApiError;
 mod minecraft;
 mod app;
 mod errors;
-mod sessionManager;
+mod session_manager;
 
 struct Discord;
-
-#[derive(Deserialize)]
-struct Whitelist {
-    username: String,
-}
 
 #[derive(Deserialize)]
 struct DiscordCallback {
@@ -42,12 +37,6 @@ struct DiscordAccessTokenResponse {
     _scope: String,
 }
 
-#[derive(Debug, sqlx::FromRow)]
-struct User {
-    id: String,
-    minecraft_username: String,
-}
-
 #[launch]
 async fn rocket() -> _ {
     dotenv().ok();
@@ -58,7 +47,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_whitelist, minecraft_whitelist_remove])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback])
         .attach(OAuth2::<Discord>::fairing("discord"))
 }
 
@@ -94,7 +83,7 @@ async fn discord_login(app: &State<App>, oauth2: OAuth2<Discord>, cookies: &Cook
                 .await
                 .unwrap();
 
-            let session_cookie = sessionManager::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
+            let session_cookie = session_manager::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
             cookies.add_private(session_cookie);
 
             return Redirect::to("/");
@@ -122,8 +111,8 @@ async fn discord_logout(app: &State<App>, cookies: &CookieJar<'_>) -> Redirect {
             .await
             .unwrap();
 
-        sessionManager::revoke_discord_token(app, session.access_token).await;
-        sessionManager::revoke_discord_token(app, session.refresh_token).await;
+        session_manager::revoke_discord_token(app, session.access_token).await;
+        session_manager::revoke_discord_token(app, session.refresh_token).await;
 
         cookies.remove_private("session_id");
     }
@@ -155,29 +144,9 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
         .await
         .unwrap();
 
-    let session_cookie = sessionManager::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
+    let session_cookie = session_manager::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
     cookies.add_private(session_cookie);
 
     //fixme change redirect location
     Ok(Redirect::to("/"))
-}
-
-#[post("/minecraft/whitelist/add", format = "application/json", data = "<whitelist_data>")]
-async fn minecraft_whitelist(app: &State<App>, whitelist_data: Json<Whitelist>) -> (Status, &'static str) {
-    minecraft::run_command(
-        app,
-        format!("whitelist add {}", whitelist_data.username),
-        "User was whitelisted successfully",
-        format!("A unknown error occurred while whitelisting user {}", whitelist_data.username),
-    ).await
-}
-
-#[post("/minecraft/whitelist/remove", format = "application/json", data = "<whitelist_data>")]
-async fn minecraft_whitelist_remove(app: &State<App>, whitelist_data: Json<Whitelist>) -> (Status, &'static str) {
-    minecraft::run_command(
-        app,
-        format!("whitelist remove {}", whitelist_data.username),
-        "User was un-whitelisted successfully",
-        format!("A unknown error occurred while un-whitelisting user {}", whitelist_data.username),
-    ).await
 }
