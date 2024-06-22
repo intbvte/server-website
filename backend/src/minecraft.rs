@@ -5,7 +5,7 @@ use rocket::serde::json::Json;
 use rocket::State;
 
 use crate::app::App;
-use crate::{minecraft, Whitelist};
+use crate::Whitelist;
 
 async fn minecraft_whitelist(app: &State<App>, whitelist_data: Json<Whitelist>) -> (Status, &'static str) {
     run_command(
@@ -25,7 +25,7 @@ async fn minecraft_whitelist_remove(app: &State<App>, whitelist_data: Json<White
     ).await
 }
 
-pub async fn run_command(app: &State<App>, command: String, success_message: &'static str, error_message: String) -> (Status, &'static str) {
+async fn run_command(app: &State<App>, command: String, success_message: &'static str, error_message: String) -> (Status, &'static str) {
     let server_id = env::var("PTERODACTYL_SERVER_ID").expect("Missing Required Env Var PTERODACTYL_SERVER_ID");
 
     let response = app.pterodactyl.get_server(server_id)

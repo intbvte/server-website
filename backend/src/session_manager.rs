@@ -40,7 +40,7 @@ pub async fn generate_session_with_callback<'a>(app: &State<App>, discord_callba
         .await
         .unwrap();
 
-    Cookie::build(("session_id", session_id.to_owned()))
+    Cookie::build(("session_id", session_id.to_string()))
         .same_site(SameSite::Lax)
         .max_age(time::Duration::seconds(secs))
         .build()
