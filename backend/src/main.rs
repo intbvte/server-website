@@ -257,7 +257,12 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
         .await;
     
     match query {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            minecraft::minecraft_whitelist_remove(app, &whitelist_data).await;
+            minecraft::minecraft_whitelist(app, &whitelist_data).await;
+            
+            Ok(())
+        },
         Err(err) => Err(ApiError::SQL(err)),
     }
 }
