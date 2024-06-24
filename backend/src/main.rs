@@ -12,7 +12,7 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket_oauth2::{OAuth2, TokenResponse};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::query;
 
 use crate::app::App;
@@ -51,6 +51,7 @@ struct MinecraftUsernameToUUID {
     id: String
 }
 
+#[derive(Serialize)]
 pub struct User {
     pub discord_id: i64,
     pub discord_username: String,
@@ -136,7 +137,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info])
         .attach(OAuth2::<Discord>::fairing("discord"))
 }
 
@@ -266,4 +267,9 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
         },
         Err(err) => Err(ApiError::SQL(err)),
     }
+}
+
+#[get("/users/@me")]
+async fn get_user_info(session: Session) -> Json<User> {
+    Json(session.user)
 }
