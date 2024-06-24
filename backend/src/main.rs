@@ -1,17 +1,19 @@
 #[macro_use]
 extern crate rocket;
 
+use chrono::serde::ts_seconds_option;
 use std::env;
 use chrono::{DateTime, Utc};
 
 use dotenvy::dotenv;
 use rocket::{Request, State};
+use rocket::form::Form;
 use rocket::http::{CookieJar, Status};
 use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket_oauth2::{OAuth2, TokenResponse};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::query;
 
 use crate::app::App;
@@ -24,7 +26,7 @@ mod session_manager;
 
 struct Discord;
 
-#[derive(Deserialize)]
+#[derive(FromForm)]
 struct Whitelist {
     username: String,
 }
@@ -50,12 +52,15 @@ struct MinecraftUsernameToUUID {
     id: String
 }
 
+#[derive(Serialize)]
 pub struct User {
     pub discord_id: i64,
     pub discord_username: String,
     pub minecraft_uuid: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub last_updated: DateTime<Utc>,
+    #[serde(with = "ts_seconds_option")]
+    pub created_at: Option<DateTime<Utc>>,
+    #[serde(with = "ts_seconds_option")]
+    pub last_updated: Option<DateTime<Utc>>,
     pub is_admin: bool
 }
 
@@ -108,8 +113,8 @@ impl<'r> FromRequest<'r> for Session {
                         discord_id: user.discord_id,
                         discord_username: user.discord_username,
                         minecraft_uuid: user.minecraft_uuid,
-                        created_at: user.created_at,
-                        last_updated: user.last_updated,
+                        created_at: Some(user.created_at),
+                        last_updated: Some(user.last_updated),
                         is_admin: user.is_admin
                     },
                     session_id: session.session_id,
@@ -135,7 +140,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info])
         .attach(OAuth2::<Discord>::fairing("discord"))
 }
 
@@ -242,8 +247,8 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     Ok(Redirect::to("/"))
 }
 
-#[post("/minecraft/username/change", format = "application/json", data = "<whitelist_data>")]
-async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Json<Whitelist>) -> Result<(), ApiError> {
+#[post("/minecraft/username/change", data = "<whitelist_data>")]
+async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
     let user_profile = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
         .send()
         .await
@@ -265,4 +270,9 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
         },
         Err(err) => Err(ApiError::SQL(err)),
     }
+}
+
+#[get("/users/@me")]
+async fn get_user_info(session: Session) -> Json<User> {
+    Json(session.user)
 }

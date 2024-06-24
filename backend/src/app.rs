@@ -16,7 +16,7 @@ impl App {
             https: reqwest::Client::new(),
 
             db: PgPoolOptions::new()
-                .connect("postgres://postgres:postgres@localhost/postgres")
+                .connect(&env::var("DATABASE_URL").expect("Missing Required Env Var DATABASE_URL"))
                 .await.expect("Unknown error occurred while connecting to DB"),
 
             pterodactyl: pterodactyl_api::client::ClientBuilder::new(
