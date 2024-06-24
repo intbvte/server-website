@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
+use chrono::serde::ts_seconds_option;
 use std::env;
 use chrono::{DateTime, Utc};
 
@@ -56,8 +57,10 @@ pub struct User {
     pub discord_id: i64,
     pub discord_username: String,
     pub minecraft_uuid: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub last_updated: DateTime<Utc>,
+    #[serde(with = "ts_seconds_option")]
+    pub created_at: Option<DateTime<Utc>>,
+    #[serde(with = "ts_seconds_option")]
+    pub last_updated: Option<DateTime<Utc>>,
     pub is_admin: bool
 }
 
@@ -110,8 +113,8 @@ impl<'r> FromRequest<'r> for Session {
                         discord_id: user.discord_id,
                         discord_username: user.discord_username,
                         minecraft_uuid: user.minecraft_uuid,
-                        created_at: user.created_at,
-                        last_updated: user.last_updated,
+                        created_at: Some(user.created_at),
+                        last_updated: Some(user.last_updated),
                         is_admin: user.is_admin
                     },
                     session_id: session.session_id,

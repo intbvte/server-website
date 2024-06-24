@@ -1,13 +1,12 @@
 use std::env;
+use rocket::form::Form;
 
-use rocket::http::Status;
-use rocket::serde::json::Json;
 use rocket::State;
 
 use crate::app::App;
 use crate::Whitelist;
 
-pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Json<Whitelist>) {
+pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whitelist>) {
     run_command(
         app,
         format!("whitelist add {}", whitelist_data.username),
@@ -15,7 +14,7 @@ pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Json<Whiteli
     ).await
 }
 
-pub async fn minecraft_whitelist_remove(app: &State<App>, whitelist_data: &Json<Whitelist>) {
+pub async fn minecraft_whitelist_remove(app: &State<App>, whitelist_data: &Form<Whitelist>) {
     run_command(
         app,
         format!("whitelist remove {}", whitelist_data.username),
