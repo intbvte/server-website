@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 
 use dotenvy::dotenv;
 use rocket::{Request, State};
+use rocket::form::Form;
 use rocket::http::{CookieJar, Status};
 use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
@@ -24,7 +25,7 @@ mod session_manager;
 
 struct Discord;
 
-#[derive(Deserialize)]
+#[derive(FromForm)]
 struct Whitelist {
     username: String,
 }
@@ -242,8 +243,8 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     Ok(Redirect::to("/"))
 }
 
-#[post("/minecraft/username/change", format = "application/json", data = "<whitelist_data>")]
-async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Json<Whitelist>) -> Result<(), ApiError> {
+#[post("/minecraft/username/change", data = "<whitelist_data>")]
+async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
     let user_profile = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
         .send()
         .await
