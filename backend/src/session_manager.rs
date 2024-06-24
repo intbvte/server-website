@@ -1,9 +1,9 @@
 use std::env;
 use chrono::{Duration, Local};
-use rand::RngCore;
 use rocket::{State, time};
 use rocket::http::{Cookie, SameSite};
 use sqlx::query;
+use uuid::Uuid;
 
 use crate::app::App;
 use crate::DiscordCallback;
@@ -26,10 +26,7 @@ pub async fn generate_session_with_callback<'a>(app: &State<App>, discord_callba
 
     let max_age = Local::now().naive_local() + Duration::seconds(secs);
 
-    let mut u128_pool = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut u128_pool);
-
-    let session_id = u128::from_le_bytes(u128_pool).to_string();
+    let session_id = Uuid::new_v4().to_string();
 
     let user_id = discord_callback.id.parse::<i64>().expect("Failed to read user.id as a i64");
 
