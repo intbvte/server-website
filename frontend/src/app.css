@@ -1,3 +1,57 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities{
+    .pixelated{
+        image-rendering: pixelated;
+    }
+}
+
+@layer base {
+    @font-face {
+        font-family: 'Minecraft';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/fonts/MinecraftMono.otf) format('opentype');
+    }
+    .bg-dither{
+        background-image: url("/ui/dither.png");
+        image-rendering: pixelated;
+        background-size: 16px;
+    }
+    .bg-gold{
+        border-image: url("/ui/border_gold.png") 3 fill;
+    }
+    .bg-gray{
+        border-image: url("/ui/border_gray.png") 3 fill;
+    }
+    .bg-input{
+        border-image: url("/ui/border_text_input.png") 4 fill;
+    }
+    .bg-info{
+        border-image: url("/ui/border_info.png") 6 fill / 18px;
+
+    }
+    @keyframes train-move {
+        from{
+            right: 100vw;
+        }
+        to{
+            right: -100vw;
+        }
+    }
+    .train-move{
+        animation-name: train-move;
+        animation-duration: 20s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        animation-delay: 10s;
+        animation-fill-mode: backwards;
+    }
+}
+
+:root{
+    @apply bg-sky
+}
