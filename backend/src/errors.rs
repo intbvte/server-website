@@ -15,6 +15,8 @@ pub enum ApiError {
     TokenError(#[from] rocket_oauth2::Error),
     #[error("You're not authorized!")]
     Unauthorized,
+    #[error("You are being rate limited, please try again later!")]
+    RateLimited,
     #[error("Attempted to get a non-none value but found none")]
     OptionError,
     #[error("Attempted to parse a number to an integer but errored out: {0}")]
@@ -32,6 +34,7 @@ impl<'r> Responder<'r, 'static> for ApiError {
             Self::Request(e) => (Status::InternalServerError, e.to_string()),
             Self::TokenError(e) => (Status::InternalServerError, e.to_string()),
             Self::Unauthorized => (Status::Unauthorized, "Unauthorized!".to_string()),
+            Self::RateLimited => (Status::TooManyRequests, "Rate-limited!".to_string()),
             Self::OptionError => (
                 Status::InternalServerError,
                 "Attempted to get a non-none value but found none".to_string(),

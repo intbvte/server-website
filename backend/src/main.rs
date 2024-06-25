@@ -12,6 +12,7 @@ use rocket::http::{CookieJar, Status};
 use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
+use rocket_governor::{Method, Quota, rocket_governor_catcher, RocketGovernable, RocketGovernor};
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
@@ -71,6 +72,13 @@ pub struct Session {
     pub refresh_token: String,
     pub expires_at: DateTime<Utc>,
     pub expired: bool,
+}
+
+pub struct RateLimitGuard;
+impl<'r> RocketGovernable<'r> for RateLimitGuard {
+    fn quota(_method: Method, _route_name: &str) -> Quota {
+        Quota::per_minute(Self::nonzero(3u32))
+    }
 }
 
 #[rocket::async_trait]
@@ -142,6 +150,7 @@ async fn rocket() -> _ {
         .manage(app)
         .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info])
         .attach(OAuth2::<Discord>::fairing("discord"))
+        .register("/", catchers!(rocket_governor_catcher))
 }
 
 #[get("/login/discord")]
@@ -248,27 +257,37 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 }
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
-async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
-    let user_profile = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
+async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGovernor<'_, RateLimitGuard>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
+    let request = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
         .send()
-        .await
-        .unwrap()
-        .json::<MinecraftUsernameToUUID>()
-        .await
-        .unwrap();
-    
-    let query = query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", user_profile.id, session.user.discord_id)
-        .execute(&app.db)
         .await;
-    
-    match query {
-        Ok(_) => {
-            minecraft::minecraft_whitelist_remove(app, &whitelist_data).await;
-            minecraft::minecraft_whitelist(app, &whitelist_data).await;
-            
-            Ok(())
-        },
-        Err(err) => Err(ApiError::SQL(err)),
+
+    return match request {
+        Ok(req) => {
+            let user_profile = req
+                .json::<MinecraftUsernameToUUID>()
+                .await;
+
+            match user_profile {
+                Ok(profile) => {
+                    let query = query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
+                        .execute(&app.db)
+                        .await;
+
+                    match query {
+                        Ok(_) => {
+                            minecraft::minecraft_whitelist_remove(app, &whitelist_data).await;
+                            minecraft::minecraft_whitelist(app, &whitelist_data).await;
+
+                            Ok(())
+                        },
+                        Err(err) => Err(ApiError::SQL(err)),
+                    }
+                }
+                Err(err) => Err(ApiError::Request(err))
+            }
+        }
+        Err(err) => Err(ApiError::Request(err))
     }
 }
 
