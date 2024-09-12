@@ -27,5 +27,6 @@
 	<div class="w-screen h-full absolute z-10 left-0 top-0">
 		<Navbar user={data.user} />
 		<slot />
+		<p></p>
 	</div>
 </div>
