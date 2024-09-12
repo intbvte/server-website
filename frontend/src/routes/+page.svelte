@@ -40,8 +40,8 @@
 			{/if}
 		</div>
 		<a href="/rules" class="bg-gray p-2 border-4 text-center pixelated"> Rules </a>
-		<a href="/rules" class="bg-gray p-2 border-4 text-center pixelated"> Guilds </a>
-		<a href="/rules" class="bg-gray p-2 border-4 text-center pixelated"> Track Map </a>
-		<a href="/rules" class="bg-gray p-2 border-4 text-center pixelated"> BlueMap </a>
+		<a href="/guilds" class="bg-gray p-2 border-4 text-center pixelated"> Guilds </a>
+		<a href="https://ctm.railways.ithundxr.dev/" class="bg-gray p-2 border-4 text-center pixelated"> Track Map </a>
+		<a href="https://map.railways.ithundxr.dev/" class="bg-gray p-2 border-4 text-center pixelated"> BlueMap </a>
 	</div>
 </main>
