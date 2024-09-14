@@ -32,7 +32,6 @@
     }
     .bg-info{
         border-image: url("/ui/border_info.png") 6 fill / 18px;
-
     }
     @keyframes train-move {
         from{

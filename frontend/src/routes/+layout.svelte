@@ -8,7 +8,7 @@
 
 <div class="bg-sky w-full">
 	<div class="absolute bottom-0 w-screen overflow-x-clip">
-		<img
+		<!-- <img
 			src="background/background_back.png"
 			class="w-full absolute bottom-0 pixelated"
 			alt="Background Back"
@@ -22,7 +22,7 @@
 			src="background/background_front.png"
 			class="w-full absolute bottom-0 pixelated"
 			alt="Background Back"
-		/>
+		/> -->
 	</div>
 	<div class="w-screen h-full absolute z-10 left-0 top-0">
 		<Navbar user={data.user} />
