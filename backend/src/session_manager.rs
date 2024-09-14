@@ -26,7 +26,9 @@ pub async fn generate_session_with_callback<'a>(app: &State<App>, discord_callba
 
     let max_age = Local::now().naive_local() + Duration::seconds(secs);
 
-    let session_id = Uuid::new_v4().to_string();
+    let session_id = Uuid::new_v4();
+
+
 
     let user_id = discord_callback.id.parse::<i64>().expect("Failed to read user.id as a i64");
 

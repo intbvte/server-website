@@ -16,7 +16,7 @@ use rocket_governor::{Method, Quota, rocket_governor_catcher, RocketGovernable, 
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
-
+use uuid::Uuid;
 use crate::app::App;
 use crate::errors::ApiError;
 
@@ -67,7 +67,7 @@ pub struct User {
 
 pub struct Session {
     pub user: User,
-    pub session_id: String,
+    pub session_id: Uuid,
     pub access_token: String,
     pub refresh_token: String,
     pub expires_at: DateTime<Utc>,
@@ -102,35 +102,35 @@ impl<'r> FromRequest<'r> for Session {
             },
         };
 
-        let session_id = cookie.value();
-
-        let session = query!("SELECT * FROM sessions WHERE session_id = $1", session_id)
-            .fetch_optional(&app.db)
-            .await
-            .unwrap();
-
-        if let Some(session) = session {
-            let user = query!("SELECT * FROM users WHERE discord_id = $1", session.user_id)
+        if let Ok(session_id) = Uuid::parse_str(cookie.value()) {
+            let session = query!("SELECT * FROM sessions WHERE session_id = $1", session_id)
                 .fetch_optional(&app.db)
                 .await
                 .unwrap();
 
-            if let Some(user) = user {
-                return Outcome::Success(Session {
-                    user: User {
-                        discord_id: user.discord_id,
-                        discord_username: user.discord_username,
-                        minecraft_uuid: user.minecraft_uuid,
-                        created_at: Some(user.created_at),
-                        last_updated: Some(user.last_updated),
-                        is_admin: user.is_admin
-                    },
-                    session_id: session.session_id,
-                    access_token: session.access_token,
-                    refresh_token: session.refresh_token,
-                    expires_at: session.expires_at,
-                    expired: session.expired
-                })
+            if let Some(session) = session {
+                let user = query!("SELECT * FROM users WHERE discord_id = $1", session.user_id)
+                    .fetch_optional(&app.db)
+                    .await
+                    .unwrap();
+
+                if let Some(user) = user {
+                    return Outcome::Success(Session {
+                        user: User {
+                            discord_id: user.discord_id,
+                            discord_username: user.discord_username,
+                            minecraft_uuid: user.minecraft_uuid,
+                            created_at: Some(user.created_at),
+                            last_updated: Some(user.last_updated),
+                            is_admin: user.is_admin
+                        },
+                        session_id: session.session_id,
+                        access_token: session.access_token,
+                        refresh_token: session.refresh_token,
+                        expires_at: session.expires_at,
+                        expired: session.expired
+                    })
+                }
             }
         }
 
@@ -158,37 +158,37 @@ async fn discord_login(app: &State<App>, oauth2: OAuth2<Discord>, cookies: &Cook
     let session_cookie = cookies.get_private("session_id");
 
     if let Some(cookie) = session_cookie {
-        let session_id = cookie.value();
-
-        let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
-            .fetch_optional(&app.db)
-            .await
-            .unwrap();
-
-        if let Some(session) = session {
-            let req = app.https.post("https://discord.com/api/oauth2/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .basic_auth(
-                    env::var("DISCORD_CLIENT_ID").expect("Missing client id"),
-                    Some(env::var("DISCORD_CLIENT_SECRET").expect("Missing client secret")),
-                )
-                .body(format!("grant_type=refresh_token&refresh_token={}", session.refresh_token))
-                .send()
-                .await
-                .unwrap()
-                .json::<DiscordAccessTokenResponse>()
+        if let Ok(session_id) = Uuid::parse_str(cookie.value()) {
+            let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
+                .fetch_optional(&app.db)
                 .await
                 .unwrap();
 
-            query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
-                .execute(&app.db)
-                .await
-                .unwrap();
+            if let Some(session) = session {
+                let req = app.https.post("https://discord.com/api/oauth2/token")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .basic_auth(
+                        env::var("DISCORD_CLIENT_ID").expect("Missing client id"),
+                        Some(env::var("DISCORD_CLIENT_SECRET").expect("Missing client secret")),
+                    )
+                    .body(format!("grant_type=refresh_token&refresh_token={}", session.refresh_token))
+                    .send()
+                    .await
+                    .unwrap()
+                    .json::<DiscordAccessTokenResponse>()
+                    .await
+                    .unwrap();
 
-            let session_cookie = session_manager::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
-            cookies.add_private(session_cookie);
+                query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
+                    .execute(&app.db)
+                    .await
+                    .unwrap();
 
-            return Redirect::to("/");
+                let session_cookie = session_manager::generate_session(app, &req.access_token, &req.refresh_token, req.expires_in).await;
+                cookies.add_private(session_cookie);
+
+                return Redirect::to("/");
+            }
         }
     };
 
@@ -200,23 +200,23 @@ async fn discord_logout(app: &State<App>, cookies: &CookieJar<'_>) -> Redirect {
     let session_cookie = cookies.get_private("session_id");
 
     if let Some(cookie) = session_cookie {
-        let session_id = cookie.value();
+        if let Ok(session_id) = Uuid::parse_str(cookie.value()) {
+            let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
+                .fetch_optional(&app.db)
+                .await
+                .unwrap()
+                .unwrap();
 
-        let session = query!("SELECT * FROM sessions WHERE session_id = $1 AND expired = FALSE AND expires_at > NOW()", session_id)
-            .fetch_optional(&app.db)
-            .await
-            .unwrap()
-            .unwrap();
+            query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
+                .execute(&app.db)
+                .await
+                .unwrap();
 
-        query!("UPDATE sessions SET expired = true WHERE session_id = $1", session_id)
-            .execute(&app.db)
-            .await
-            .unwrap();
+            session_manager::revoke_discord_token(app, session.access_token).await;
+            session_manager::revoke_discord_token(app, session.refresh_token).await;
 
-        session_manager::revoke_discord_token(app, session.access_token).await;
-        session_manager::revoke_discord_token(app, session.refresh_token).await;
-
-        cookies.remove_private("session_id");
+            cookies.remove_private("session_id");
+        }
     }
 
     Redirect::to("/")
