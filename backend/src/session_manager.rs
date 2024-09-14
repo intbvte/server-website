@@ -28,8 +28,6 @@ pub async fn generate_session_with_callback<'a>(app: &State<App>, discord_callba
 
     let session_id = Uuid::new_v4();
 
-
-
     let user_id = discord_callback.id.parse::<i64>().expect("Failed to read user.id as a i64");
 
     query!("INSERT INTO sessions (user_id, session_id, expires_at, access_token, refresh_token)
