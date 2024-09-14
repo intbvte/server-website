@@ -16,12 +16,12 @@
 		<img
 			src="background/background_train.png"
 			class="w-full absolute bottom-0 pixelated train-move"
-			alt="Background Back"
+			alt="Background Middle"
 		/>
 		<img
 			src="background/background_front.png"
 			class="w-full absolute bottom-0 pixelated"
-			alt="Background Back"
+			alt="Background Front"
 		/> -->
 	</div>
 	<div class="w-screen h-full absolute z-10 left-0 top-0">

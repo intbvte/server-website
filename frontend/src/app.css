@@ -17,21 +17,40 @@
         src: url(/fonts/MinecraftMono.otf) format('opentype');
     }
     .bg-dither{
-        background-image: url("/ui/dither.png");
+        background-image: url("/ui/bg_dark.png");
         image-rendering: pixelated;
         background-size: 16px;
     }
     .bg-gold{
         border-image: url("/ui/border_gold.png") 3 fill;
+        border-width: 6px;
+        image-rendering: pixelated;
     }
     .bg-gray{
         border-image: url("/ui/border_gray.png") 3 fill;
+        border-width: 6px;
+        image-rendering: pixelated;
+
+    }
+    .bg-dark{
+        border-image: url("/ui/border_dark.png") 3 fill;
+        border-width: 6px;
+        image-rendering: pixelated;
+
     }
     .bg-input{
         border-image: url("/ui/border_text_input.png") 4 fill;
+        border-width: 8px;
+        image-rendering: pixelated;
+    }
+    .bg-button{
+        border-image: url("/ui/border_button.png") 3 fill;
+        border-width: 6px;
+        image-rendering: pixelated;
     }
     .bg-info{
         border-image: url("/ui/border_info.png") 6 fill / 18px;
+        border-width: 6px;
     }
     @keyframes train-move {
         from{
