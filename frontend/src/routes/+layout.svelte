@@ -2,29 +2,20 @@
 	import '../app.css';
 	import type { PageData } from './$types';
 	import Navbar from '$lib/Navbar.svelte';
+	import Panorama from '$lib/Panorama.svelte';
 
 	export let data: PageData;
 </script>
 
-<div class="bg-sky w-full">
-	<div class="absolute bottom-0 w-screen overflow-x-clip">
-		<!-- <img
-			src="background/background_back.png"
-			class="w-full absolute bottom-0 pixelated"
-			alt="Background Back"
-		/>
-		<img
-			src="background/background_train.png"
-			class="w-full absolute bottom-0 pixelated train-move"
-			alt="Background Middle"
-		/>
-		<img
-			src="background/background_front.png"
-			class="w-full absolute bottom-0 pixelated"
-			alt="Background Front"
-		/> -->
+<svelte:head>
+	<title>Steam 'n' Rails SMP S2</title>
+</svelte:head>
+
+<div class="w-full bg-cover min-h-screen bg-center pixelated">
+	<div class="absolute bottom-0 w-screen overflow-x-clip h-full">
+		<Panorama/>
 	</div>
-	<div class="w-screen h-full absolute z-10 left-0 top-0">
+	<div class="w-screen h-full z-10 absolute left-0 top-0">
 		<Navbar user={data.user} />
 		<slot />
 		<p></p>

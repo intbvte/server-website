@@ -25,11 +25,33 @@
 		})
 		window.location.reload();
 	}
+
+	const releaseDate = new Date(1727090020000)
+	let remainingTime = releaseDate.valueOf() - Date.now().valueOf();
+	const getRemainingTimeString = () => {
+		let rts = remainingTime;
+		
+		const hours = Math.floor(rts / (1000 * 60 * 60));
+		rts %= 1000 * 60 * 60;
+		
+		const minutes = Math.floor(rts / (1000 * 60));
+		rts %= 1000 * 60;
+		
+		const seconds = Math.floor(rts / 1000);
+		
+		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`
+	}
+	let remainingTimeString = getRemainingTimeString();
+	setInterval(()=>{
+		remainingTime = releaseDate.valueOf() - Date.now().valueOf();
+
+		remainingTimeString = getRemainingTimeString();
+	},1000)
 </script>
 
 <main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10">
-	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl" />
-	<div class="grid grid-cols-2 gap-3 w-full max-w-sm">
+	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-full px-2" />
+	<div class="grid grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
 		<div class="col-span-2">
 			{#if data.user && !data.user.minecraft_uuid}
 				<div
@@ -58,7 +80,15 @@
 				<div
 					class="col-span-2 bg-info p-4 text-center border-12 text-black flex flex-col pixelated bg-input"
 				>
-					You are whitelisted
+					{#if remainingTime < 0}
+						You are whitelisted
+					{:else if remainingTime < (1000 * 60 * 60 * 24 * 1)}
+						release in {remainingTimeString}
+
+					{:else}
+						Server start on {releaseDate.toLocaleDateString()}
+						at {releaseDate.toLocaleTimeString()}
+					{/if}
 				</div>
 			{/if}
 		</div>

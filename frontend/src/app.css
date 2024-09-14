@@ -49,8 +49,8 @@
         image-rendering: pixelated;
     }
     .bg-info{
-        border-image: url("/ui/border_info.png") 6 fill / 18px;
-        border-width: 6px;
+        border-image: url("/ui/border_info.png") 4 fill;
+        border-width: 8px;
     }
     @keyframes train-move {
         from{
