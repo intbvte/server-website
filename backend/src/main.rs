@@ -57,13 +57,14 @@ struct MinecraftUsernameToUuid {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-struct MinecraftUuidToUsernameProperties {
+pub struct MinecraftUuidToUsernameProperties {
     name: String,
     value: String,
 }
 
 #[derive(Deserialize)]
 struct MinecraftUuidToUsername {
+    #[allow(dead_code)]
     id: Uuid,
     name: String,
     properties: Vec<MinecraftUuidToUsernameProperties>,
@@ -72,8 +73,8 @@ struct MinecraftUuidToUsername {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserData {
     pub discord_username: String,
-    pub minecraft_username: Option<String>,
-    pub properties: Option<Vec<MinecraftUuidToUsernameProperties>>,
+    pub minecraft_username: String,
+    pub properties: Vec<MinecraftUuidToUsernameProperties>,
 }
 
 #[derive(Serialize, Hash)]
@@ -328,8 +329,8 @@ async fn get_user_info(session: Session) -> Json<User> {
     Json(session.user)
 }
 
-#[get("/users/id_to_username")]
-async fn get_usernames(app: &State<App>, session: Session) -> Json<UserData> {
+#[get("/users/id_to_username/<uuid>")]
+async fn get_usernames(app: &State<App>, session: Session, uuid: String) -> Json<UserData> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     let cache_key = hasher.finish();
@@ -345,9 +346,6 @@ async fn get_usernames(app: &State<App>, session: Session) -> Json<UserData> {
         }
     }
 
-    let mut minecraft_username: Option<String> = None;
-    let mut minecraft_properties: Option<Vec<MinecraftUuidToUsernameProperties>> = None;
-
     let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
         .send()
         .await
@@ -356,25 +354,18 @@ async fn get_usernames(app: &State<App>, session: Session) -> Json<UserData> {
         .await
         .unwrap();
 
-    if let Some(minecraft_uuid) = session.user.minecraft_uuid {
-        //app.cache.
-
-        let request = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", minecraft_uuid))
-            .send()
-            .await
-            .unwrap()
-            .json::<MinecraftUuidToUsername>()
-            .await
-            .unwrap();
-
-        minecraft_username = Some(request.name);
-        minecraft_properties = Some(request.properties);
-    }
+    let mc_profile = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", uuid))
+        .send()
+        .await
+        .unwrap()
+        .json::<MinecraftUuidToUsername>()
+        .await
+        .unwrap();
 
     let data = UserData {
         discord_username: discord_user.username,
-        minecraft_username: minecraft_username,
-        properties: minecraft_properties,
+        minecraft_username: mc_profile.name,
+        properties: mc_profile.properties,
     };
 
     {
