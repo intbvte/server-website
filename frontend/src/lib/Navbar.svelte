@@ -11,7 +11,7 @@
 
 <nav class="py-1 px-2 text-white">
 	{#if user != null}
-		{user.discord_username}
+		<!-- {user} -->
 		<a href={`${backendUrl}/logout/discord`} target="signOut" class="underline underline-offset-2">sign out</a>
 	{:else}
 		<input type="button" value="sign in" on:click={signIn}>

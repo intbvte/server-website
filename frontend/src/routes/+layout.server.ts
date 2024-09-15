@@ -9,9 +9,11 @@ export async function load({ fetch }) {
 	const req = fetch(backendUrl + '/users/@me');
 	req.catch(console.error);
 	const response = await req;
+	const data = await response.json()
+	console.log(data)
 	let user: z.infer<typeof userSchema> | null = null;
 	if (response.ok) {
-		user = userSchema.parse(await response.json());
+		user = userSchema.parse(data);
 	}
 	return { user };
 }
