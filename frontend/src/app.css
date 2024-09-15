@@ -44,8 +44,9 @@
         image-rendering: pixelated;
     }
     .bg-button{
-        border-image: url("/ui/border_button.png") 3 fill;
-        border-width: 6px;
+        border-image: url("/ui/border_button.png") 2;
+        background-color: #747474;
+        border-width: 4px;
         image-rendering: pixelated;
     }
     .bg-info{
