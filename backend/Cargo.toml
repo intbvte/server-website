@@ -17,3 +17,4 @@ thiserror = "1.0.61"
 chrono = { version = "0.4.38", features = ["clock", "serde"] }
 uuid = { version = "1.8.0", features = ["v4"] }
 rocket-governor = "0.2.0-rc.3"
+chrono-tz = "0.10.0"

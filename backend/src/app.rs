@@ -10,7 +10,7 @@ pub struct App {
     pub https: reqwest::Client,
     pub db: Pool<Postgres>,
     pub pterodactyl: pterodactyl_api::client::Client,
-    pub cache: Arc<RwLock<HashMap<u64, (String, Instant)>>>,
+    pub cache: Arc<RwLock<HashMap<(&'static str, u64), (String, Instant)>>>,
 }
 
 impl App {

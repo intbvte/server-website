@@ -6,7 +6,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::{Duration, Instant};
-
+use chrono_tz::America::New_York;
 use crate::app::App;
 use crate::errors::ApiError;
 use dotenvy::dotenv;
@@ -29,7 +29,7 @@ mod session_manager;
 
 struct Discord;
 
-#[derive(FromForm)]
+#[derive(FromForm, Clone)]
 struct Whitelist {
     username: String,
 }
@@ -49,7 +49,7 @@ struct DiscordAccessTokenResponse {
     _scope: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct MinecraftUsernameToUuid {
     #[allow(dead_code)]
     name: String,
@@ -77,7 +77,7 @@ pub struct UserData {
     pub properties: Vec<MinecraftUuidToUsernameProperties>,
 }
 
-#[derive(Serialize, Hash)]
+#[derive(Serialize, Hash, Clone)]
 pub struct User {
     pub discord_id: i64,
     pub minecraft_uuid: Option<String>,
@@ -88,7 +88,7 @@ pub struct User {
     pub is_admin: bool,
 }
 
-#[derive(Hash)]
+#[derive(Hash, Clone)]
 pub struct Session {
     pub user: User,
     pub session_id: Uuid,
@@ -171,7 +171,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, get_usernames])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid, id_to_username])
         .attach(OAuth2::<Discord>::fairing("discord"))
         .register("/", catchers!(rocket_governor_catcher))
 }
@@ -281,47 +281,35 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
 async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGovernor<'_, RateLimitGuard>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
-    let release_date = Utc.with_ymd_and_hms(2024, 10, 16, 5, 0, 0).unwrap();
+    let release_date = New_York.with_ymd_and_hms(2024, 10, 5, 15, 0, 0).unwrap();
 
     let current_date_time = Utc::now();
 
-    if current_date_time < release_date {
+    // !cfg!(debug_assertions) = Not debug build
+    if current_date_time < release_date && !cfg!(debug_assertions) {
         return Err(ApiError::OptionError);
     }
 
-    let request = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
-        .send()
-        .await;
-
-    return match request {
-        Ok(req) => {
-            let user_profile = req
-                .json::<MinecraftUsernameToUuid>()
+    match username_to_uuid(app, session.clone(), whitelist_data.clone().username).await {
+        Ok(profile) => {
+            let query = query_scalar!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid", profile.id, session.user.discord_id)
+                .fetch_one(&app.db)
                 .await;
 
-            match user_profile {
-                Ok(profile) => {
-                    let query = query_scalar!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid", profile.id, session.user.discord_id)
-                        .fetch_one(&app.db)
-                        .await;
-
-                    match query {
-                        Ok(result) => {
-                            if let Some(old_username) = result {
-                                minecraft::minecraft_whitelist_remove(app, old_username).await;
-                            }
-                            minecraft::minecraft_whitelist(app, &whitelist_data).await;
-
-                            Ok(())
-                        }
-                        Err(err) => Err(ApiError::SQL(err)),
+            match query {
+                Ok(result) => {
+                    if let Some(old_username) = result {
+                        minecraft::minecraft_whitelist_remove(app, old_username).await;
                     }
+                    minecraft::minecraft_whitelist(app, &whitelist_data).await;
+
+                    return Ok(());
                 }
-                Err(err) => Err(ApiError::Request(err))
+                Err(err) => Err(ApiError::SQL(err)),
             }
-        }
-        Err(err) => Err(ApiError::Request(err))
-    };
+        },
+        Err(err) => Err(err)
+    }
 }
 
 #[get("/users/@me")]
@@ -329,11 +317,49 @@ async fn get_user_info(session: Session) -> Json<User> {
     Json(session.user)
 }
 
-#[get("/users/id_to_username/<uuid>")]
-async fn get_usernames(app: &State<App>, session: Session, uuid: String) -> Json<UserData> {
+#[get("/users/username_to_uuid/<username>")]
+async fn username_to_uuid(app: &State<App>, session: Session, username: String) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
-    let cache_key = hasher.finish();
+    let cache_key = ("username_to_uuid", hasher.finish() + 10);
+    let cache_duration = Duration::new(3600, 0);
+
+    {
+        let mut cache = app.cache.write().unwrap();
+        cache.retain(|_, (_, timestamp)| timestamp.elapsed() < cache_duration);
+        if let Some((data, timestamp)) = cache.get(&cache_key) {
+            if timestamp.elapsed() < cache_duration {
+                let deserialized: MinecraftUsernameToUuid = serde_json::from_str(&data).unwrap();
+                return Ok(Json(deserialized.clone()));
+            }
+        }
+    }
+
+    let request = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", username))
+        .send()
+        .await;
+
+    if let Ok(req) = request {
+        if let Ok(user_profile) = req
+            .json::<MinecraftUsernameToUuid>()
+            .await {
+            {
+                let mut write_cache = app.cache.write().unwrap();
+                write_cache.insert(cache_key, (serde_json::to_string(&user_profile).unwrap(), Instant::now()));
+            }
+
+            return Ok(Json(user_profile));
+        };
+    }
+
+    Err(ApiError::OptionError)
+}
+
+#[get("/users/id_to_username/<uuid>")]
+async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Json<UserData> {
+    let mut hasher = DefaultHasher::new();
+    session.hash(&mut hasher);
+    let cache_key = ("id_to_username", hasher.finish());
     let cache_duration = Duration::new(3600, 0);
 
     {
