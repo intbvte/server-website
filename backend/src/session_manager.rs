@@ -1,8 +1,8 @@
-use std::env;
 use chrono::{Duration, Local};
-use rocket::{State, time};
 use rocket::http::{Cookie, SameSite};
+use rocket::{time, State};
 use sqlx::query;
+use std::env;
 use uuid::Uuid;
 
 use crate::app::App;
