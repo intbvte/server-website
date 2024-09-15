@@ -5,16 +5,16 @@
 	export let user: z.infer<typeof userSchema> | null;
 
 	const signIn = () => {
-		open(`${backendUrl}/login/discord`, "signIn", "width=640,height=640")?.addEventListener("close", location.reload)
+		open(`${backendUrl}/login/discord`, "signIn", "width=640,height=720")?.closed
 	}
 </script>
 
 <nav class="py-1 px-2 text-white">
 	{#if user != null}
 		<!-- {user} -->
-		<a href={`${backendUrl}/logout/discord`} target="signOut" class="underline underline-offset-2">sign out</a>
+		<a href={`${backendUrl}/logout/discord`} target="signOutWindow" class="underline underline-offset-2">sign out</a>
 	{:else}
-		<input type="button" value="sign in" on:click={signIn}>
-		<!-- <a href={`${backendUrl}/login/discord`} target="signIn">sign in</a> -->
+		<!-- <input type="button" value="sign in" on:click={signIn}> -->
+		<a href={`${backendUrl}/login/discord`} target="signInWindow" class="underline underline-offset-2">sign in</a>
 	{/if}
 </nav>
