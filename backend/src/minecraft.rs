@@ -1,5 +1,5 @@
-use std::env;
 use rocket::form::Form;
+use std::env;
 
 use rocket::State;
 
@@ -14,11 +14,11 @@ pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whiteli
     ).await
 }
 
-pub async fn minecraft_whitelist_remove(app: &State<App>, whitelist_data: &Form<Whitelist>) {
+pub async fn minecraft_whitelist_remove(app: &State<App>, username: String) {
     run_command(
         app,
-        format!("whitelist remove {}", whitelist_data.username),
-        format!("A unknown error occurred while un-whitelisting user {}", whitelist_data.username),
+        format!("whitelist remove {}", username),
+        format!("A unknown error occurred while un-whitelisting user {}", username),
     ).await
 }
 

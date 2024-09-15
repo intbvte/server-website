@@ -2,23 +2,25 @@
 extern crate rocket;
 
 use chrono::serde::ts_seconds_option;
+use chrono::{DateTime, TimeZone, Utc};
 use std::env;
-use chrono::{DateTime, Utc};
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::time::{Duration, Instant};
 
+use crate::app::App;
+use crate::errors::ApiError;
 use dotenvy::dotenv;
-use rocket::{Request, State};
 use rocket::form::Form;
 use rocket::http::{CookieJar, Status};
 use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
-use rocket_governor::{Method, Quota, rocket_governor_catcher, RocketGovernable, RocketGovernor};
+use rocket::{Request, State};
+use rocket_governor::{rocket_governor_catcher, Method, Quota, RocketGovernable, RocketGovernor};
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::{Deserialize, Serialize};
-use sqlx::query;
+use sqlx::{query, query_scalar};
 use uuid::Uuid;
-use crate::app::App;
-use crate::errors::ApiError;
 
 mod minecraft;
 mod app;
@@ -48,23 +50,44 @@ struct DiscordAccessTokenResponse {
 }
 
 #[derive(Deserialize)]
-struct MinecraftUsernameToUUID {
+struct MinecraftUsernameToUuid {
+    #[allow(dead_code)]
     name: String,
-    id: String
+    id: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Clone)]
+struct MinecraftUuidToUsernameProperties {
+    name: String,
+    value: String,
+}
+
+#[derive(Deserialize)]
+struct MinecraftUuidToUsername {
+    id: Uuid,
+    name: String,
+    properties: Vec<MinecraftUuidToUsernameProperties>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UserData {
+    pub discord_username: String,
+    pub minecraft_username: Option<String>,
+    pub properties: Option<Vec<MinecraftUuidToUsernameProperties>>,
+}
+
+#[derive(Serialize, Hash)]
 pub struct User {
     pub discord_id: i64,
-    pub discord_username: String,
     pub minecraft_uuid: Option<String>,
     #[serde(with = "ts_seconds_option")]
     pub created_at: Option<DateTime<Utc>>,
     #[serde(with = "ts_seconds_option")]
     pub last_updated: Option<DateTime<Utc>>,
-    pub is_admin: bool
+    pub is_admin: bool,
 }
 
+#[derive(Hash)]
 pub struct Session {
     pub user: User,
     pub session_id: Uuid,
@@ -99,7 +122,7 @@ impl<'r> FromRequest<'r> for Session {
                     Status::BadRequest,
                     String::from("Session Id cookie is missing"),
                 ))
-            },
+            }
         };
 
         if let Ok(session_id) = Uuid::parse_str(cookie.value()) {
@@ -118,18 +141,17 @@ impl<'r> FromRequest<'r> for Session {
                     return Outcome::Success(Session {
                         user: User {
                             discord_id: user.discord_id,
-                            discord_username: user.discord_username,
                             minecraft_uuid: user.minecraft_uuid,
                             created_at: Some(user.created_at),
                             last_updated: Some(user.last_updated),
-                            is_admin: user.is_admin
+                            is_admin: user.is_admin,
                         },
                         session_id: session.session_id,
                         access_token: session.access_token,
                         refresh_token: session.refresh_token,
                         expires_at: session.expires_at,
-                        expired: session.expired
-                    })
+                        expired: session.expired,
+                    });
                 }
             }
         }
@@ -148,7 +170,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, get_usernames])
         .attach(OAuth2::<Discord>::fairing("discord"))
         .register("/", catchers!(rocket_governor_catcher))
 }
@@ -258,6 +280,14 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
 async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGovernor<'_, RateLimitGuard>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
+    let release_date = Utc.with_ymd_and_hms(2024, 10, 16, 5, 0, 0).unwrap();
+
+    let current_date_time = Utc::now();
+
+    if current_date_time < release_date {
+        return Err(ApiError::OptionError);
+    }
+
     let request = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", whitelist_data.username))
         .send()
         .await;
@@ -265,22 +295,24 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
     return match request {
         Ok(req) => {
             let user_profile = req
-                .json::<MinecraftUsernameToUUID>()
+                .json::<MinecraftUsernameToUuid>()
                 .await;
 
             match user_profile {
                 Ok(profile) => {
-                    let query = query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
-                        .execute(&app.db)
+                    let query = query_scalar!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid", profile.id, session.user.discord_id)
+                        .fetch_one(&app.db)
                         .await;
 
                     match query {
-                        Ok(_) => {
-                            minecraft::minecraft_whitelist_remove(app, &whitelist_data).await;
+                        Ok(result) => {
+                            if let Some(old_username) = result {
+                                minecraft::minecraft_whitelist_remove(app, old_username).await;
+                            }
                             minecraft::minecraft_whitelist(app, &whitelist_data).await;
 
                             Ok(())
-                        },
+                        }
                         Err(err) => Err(ApiError::SQL(err)),
                     }
                 }
@@ -288,10 +320,67 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
             }
         }
         Err(err) => Err(ApiError::Request(err))
-    }
+    };
 }
 
 #[get("/users/@me")]
 async fn get_user_info(session: Session) -> Json<User> {
     Json(session.user)
+}
+
+#[get("/users/id_to_username")]
+async fn get_usernames(app: &State<App>, session: Session) -> Json<UserData> {
+    let mut hasher = DefaultHasher::new();
+    session.hash(&mut hasher);
+    let cache_key = hasher.finish();
+    let cache_duration = Duration::new(3600, 0);
+
+    {
+        let read_cache = app.cache.read().unwrap();
+        if let Some((data, timestamp)) = read_cache.get(&cache_key) {
+            if timestamp.elapsed() < cache_duration {
+                let deserialized: UserData = serde_json::from_str(&data).unwrap();
+                return Json(deserialized.clone());
+            }
+        }
+    }
+
+    let mut minecraft_username: Option<String> = None;
+    let mut minecraft_properties: Option<Vec<MinecraftUuidToUsernameProperties>> = None;
+
+    let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
+        .send()
+        .await
+        .unwrap()
+        .json::<DiscordCallback>()
+        .await
+        .unwrap();
+
+    if let Some(minecraft_uuid) = session.user.minecraft_uuid {
+        //app.cache.
+
+        let request = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", minecraft_uuid))
+            .send()
+            .await
+            .unwrap()
+            .json::<MinecraftUuidToUsername>()
+            .await
+            .unwrap();
+
+        minecraft_username = Some(request.name);
+        minecraft_properties = Some(request.properties);
+    }
+
+    let data = UserData {
+        discord_username: discord_user.username,
+        minecraft_username: minecraft_username,
+        properties: minecraft_properties,
+    };
+
+    {
+        let mut write_cache = app.cache.write().unwrap();
+        write_cache.insert(cache_key, (serde_json::to_string(&data).unwrap(), Instant::now()));
+    }
+
+    Json(data)
 }

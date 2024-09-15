@@ -1,10 +1,11 @@
 use std::io::Cursor;
 
-use rocket::{Request, Response};
 use rocket::http::Status;
 use rocket::response::Responder;
+use rocket::{Request, Response};
 use thiserror::Error;
 
+#[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum ApiError {
     #[error("SQL error: {0}")]
