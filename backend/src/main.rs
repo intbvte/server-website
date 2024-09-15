@@ -337,8 +337,9 @@ async fn get_usernames(app: &State<App>, session: Session, uuid: String) -> Json
     let cache_duration = Duration::new(3600, 0);
 
     {
-        let read_cache = app.cache.read().unwrap();
-        if let Some((data, timestamp)) = read_cache.get(&cache_key) {
+        let mut cache = app.cache.write().unwrap();
+        cache.retain(|_, (_, timestamp)| timestamp.elapsed() < cache_duration);
+        if let Some((data, timestamp)) = cache.get(&cache_key) {
             if timestamp.elapsed() < cache_duration {
                 let deserialized: UserData = serde_json::from_str(&data).unwrap();
                 return Json(deserialized.clone());
