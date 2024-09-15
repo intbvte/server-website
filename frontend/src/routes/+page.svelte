@@ -8,6 +8,7 @@
 	let usernameInput:string;
 
 	const openModal = () => {
+		if(!usernameInput) return
 		username = usernameInput
 		if(!dialog.open) dialog.showModal();
 	}
@@ -63,7 +64,7 @@
 					<div class="p-3 flex bg-gray pixelated w-full gap-1">
 						<input
 							type="text"
-							class="bg-input pixelated px-1 text-white outline-none border-8 placeholder-white w-full text-shadow block placeholder:text-lightgray"
+							class="bg-input pixelated px-1 text-white outline-none border-8 placeholder-white w-full block placeholder:text-lightgray"
 							name="username"
 							placeholder="Minecraft username"
 							autocomplete="off"
@@ -71,7 +72,7 @@
 							bind:value={usernameInput}
 							on:keyup={e=>{if(e.key == "Enter") openModal()}}
 						/>
-						<button type="button" on:click={openModal}>
+						<button type="button" on:click={openModal} class="outline-none">
 							<img src="ui/next.png" class="pixelated" width="48px" alt="confirm" />
 						</button>
 					</div>
@@ -92,10 +93,10 @@
 				</div>
 			{/if}
 		</div>
-		<a href="/rules" class="bg-gray p-2 text-center pixelated"> Rules </a>
-		<a href="/guilds" class="bg-gray p-2 text-center pixelated"> Guilds </a>
-		<a href="https://ctm.railways.ithundxr.dev/" class="bg-gray p-2 text-center pixelated"> Track Map </a>
-		<a href="https://map.railways.ithundxr.dev/" class="bg-gray p-2 text-center pixelated"> BlueMap </a>
+		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
+		<a href="/guilds" class="bg-button text-white p-2 text-center pixelated"> Guilds </a>
+		<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
+		<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
 	</div>
 </main>
 
