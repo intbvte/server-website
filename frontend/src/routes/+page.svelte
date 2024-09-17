@@ -5,7 +5,7 @@ import type { PageData } from './$types';
 	export let data: PageData;
 
 
-	const releaseDate = new Date(172815480000)
+	const releaseDate = new Date(1728154800000)
 	let remainingTime = releaseDate.valueOf() - Date.now().valueOf();
 	const getRemainingTimeString = () => {
 		let rts = remainingTime;
@@ -44,7 +44,7 @@ import type { PageData } from './$types';
 						release in {remainingTimeString}
 
 					{:else}
-						Server start on {releaseDate.toLocaleDateString()}
+						Server start on <br> {releaseDate.toLocaleDateString()}
 						at {releaseDate.toLocaleTimeString()}
 					{/if}
 				</div>
