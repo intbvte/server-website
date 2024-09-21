@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { backendUrl } from '$lib/data';
+	import Skin from './Skin.svelte';
     
 	let username:string;
 	let usernameInput:string;
@@ -68,8 +69,13 @@ class="flex flex-col items-center"
 					autofocus
 				/>
 			</div>
-			<img src={`https://vzge.me/frontfull/832/${username}.png`} alt={`player skin of ${username}`} class="bg-dark p-4">
-			<input type="button" class="bg-button text-white p-2 text-center pixelated cursor-pointer" value="Add to whitelist" on:click={submitToWhitelist}>
+			{#if username}
+				<!-- <div class=" h-96">
+					<Skin {username}/>
+				</div> -->
+				<img src={`https://vzge.me/frontfull/832/${username}.png`} alt={`player skin of ${username}`} class="bg-dark p-4">
+				<input type="button" class="bg-button text-white p-2 text-center pixelated cursor-pointer" value="Add to whitelist" on:click={submitToWhitelist}>
+			{/if}
 		</div>
 	<!-- </form> -->
 </dialog>

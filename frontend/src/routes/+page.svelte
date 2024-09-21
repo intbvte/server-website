@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { backendUrl } from '$lib/data';
 	import Whitelist from '$lib/Whitelist.svelte';
 import type { PageData } from './$types';
 
@@ -34,12 +35,16 @@ import type { PageData } from './$types';
 		<div class="col-span-2">
 			{#if data.user && !data.user.minecraft_uuid && remainingTime < 0}
 				<Whitelist/>
-			{:else if data.user}
+			{:else}
 				<div
 					class="col-span-2 bg-info p-4 text-center border-12 text-black flex flex-col pixelated bg-input"
 				>
 					{#if remainingTime < 0}
-						You are whitelisted
+						{#if data.user}
+							You are whitelisted
+						{:else}
+							Sign in to get whitelisted
+						{/if}
 					{:else if remainingTime < (1000 * 60 * 60 * 24 * 1)}
 						release in {remainingTimeString}
 
