@@ -1,10 +1,58 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
     import * as THREE from 'three';
+	import { backendUrl } from '$lib/data';
+	import { minecraftProfileSchema, minecraftUserDataSchema, uuidSchema } from './schemas';
+	import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
+	import { Mesh } from 'three/src/objects/Mesh.js';
+	import { MeshStandardMaterial } from 'three/src/materials/Materials.js';
+	import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js';
+
 
     let element:HTMLDivElement;
 
-    onMount(()=>{
+    export let username:string;
+
+    let gltf:GLTF|null;
+    const imageLoader = new THREE.TextureLoader();
+
+
+    const loadSkin = async (username:string) => {
+        if(!gltf) return;
+        console.log(username)
+        const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/${username}`)
+        .catch(reason=>{
+            alert("profile is incorrect")
+            throw "";
+        })
+        .then(e=>e.json())
+
+        const {id: uuid} = uuidSchema.parse(uuidData);
+
+        console.log(uuidData)
+
+        const userData = await fetch(`${backendUrl}/users/id_to_username/${uuid}`).then(e=>e.json())
+
+        const {properties} = minecraftUserDataSchema.parse(userData);
+
+        const profile = minecraftProfileSchema.parse(JSON.parse(atob(properties[0].value)))
+
+        const skinUrl = profile.textures.SKIN?.url ?? "";
+
+
+        console.log(skinUrl)
+        const texture = await imageLoader.loadAsync(skinUrl)
+
+        gltf.scene.traverse(child=>{
+            if(!(child instanceof Mesh)) return
+            child.material = new MeshBasicMaterial({map: texture})
+        })
+
+        console.log(profile)
+    }
+
+    onMount(async ()=>{
+
 
         // Create scene, camera, and renderer
         const scene = new THREE.Scene();
@@ -15,33 +63,21 @@
         element.appendChild(renderer.domElement)
     
         // Create cube geometry for the panorama
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const loader = new THREE.TextureLoader();
+        const modelLoader = new GLTFLoader()
 
-    
-        // Load each face of the cube with a different image
-        const materials = [
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_1.webp'), side: THREE.BackSide }), // Right
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_3.webp'), side: THREE.BackSide }), // Left
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_4.webp'), side: THREE.BackSide }), // Top
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_5.webp'), side: THREE.BackSide }), // Bottom
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_0.webp'), side: THREE.BackSide }), // Front
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_2.webp'), side: THREE.BackSide })  // Back
-        ];
-    
-        // Create mesh with the cube geometry and texture materials
-        const cube = new THREE.Mesh(geometry, materials);
-        scene.add(cube);
+        gltf = await modelLoader.loadAsync("/player.glb")
+
+        scene.add(gltf.scene)
     
         // Set camera position inside the cube
-        camera.position.set(0, 0, 0);
-        camera.rotation.x = -.1
+        camera.position.set(-5, 0, 0);
+        // camera.rotation.x = -.1
 
     
-        // Animate the scene
+        // // Animate the scene
         function animate() {
             requestAnimationFrame(animate);
-            cube.rotation.y += 0.0005;
+            gltf!.scene.rotation.y += 0.0005;
             renderer.render(scene, camera);
         }
 
@@ -52,7 +88,10 @@
         });
     
         animate();
+        loadSkin(username)
     })
+
+    $: username, loadSkin(username);
 </script>
 
 <div bind:this={element} class="w-full h-full m-0"/>
