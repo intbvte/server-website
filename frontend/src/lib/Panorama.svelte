@@ -15,27 +15,28 @@
         element.appendChild(renderer.domElement)
     
         // Create cube geometry for the panorama
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const geometry = new THREE.BoxGeometry(-1, 1, 1);
         const loader = new THREE.TextureLoader();
 
     
         // Load each face of the cube with a different image
         const materials = [
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_1.webp'), side: THREE.BackSide }), // Right
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_3.webp'), side: THREE.BackSide }), // Left
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_4.webp'), side: THREE.BackSide }), // Top
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_5.webp'), side: THREE.BackSide }), // Bottom
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_0.webp'), side: THREE.BackSide }), // Front
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_2.webp'), side: THREE.BackSide })  // Back
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_1.webp') }), // Right
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_3.webp') }), // Left
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_4.webp') }), // Top
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_5.webp') }), // Bottom
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_0.webp') }), // Front
+            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_2.webp') })  // Back
         ];
     
         // Create mesh with the cube geometry and texture materials
         const cube = new THREE.Mesh(geometry, materials);
         scene.add(cube);
+        cube.rotation.y = 4.2;
     
         // Set camera position inside the cube
         camera.position.set(0, 0, 0);
-        camera.rotation.x = -.1
+
     
         // Animate the scene
         function animate() {
