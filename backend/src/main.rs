@@ -71,8 +71,8 @@ struct MinecraftUuidToUsername {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct UserData {
-    pub discord_username: String,
+pub struct MinecraftUserData {
+    // pub discord_username: String,
     pub minecraft_username: String,
     pub properties: Vec<MinecraftUuidToUsernameProperties>,
 }
@@ -356,7 +356,7 @@ async fn username_to_uuid(app: &State<App>, session: Session, username: String) 
 }
 
 #[get("/users/id_to_username/<uuid>")]
-async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Json<UserData> {
+async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Json<MinecraftUserData> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     let cache_key = ("id_to_username", hasher.finish());
@@ -367,19 +367,19 @@ async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Jso
         cache.retain(|_, (_, timestamp)| timestamp.elapsed() < cache_duration);
         if let Some((data, timestamp)) = cache.get(&cache_key) {
             if timestamp.elapsed() < cache_duration {
-                let deserialized: UserData = serde_json::from_str(&data).unwrap();
+                let deserialized: MinecraftUserData = serde_json::from_str(&data).unwrap();
                 return Json(deserialized.clone());
             }
         }
     }
 
-    let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
-        .send()
-        .await
-        .unwrap()
-        .json::<DiscordCallback>()
-        .await
-        .unwrap();
+    // let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
+    //     .send()
+    //     .await
+    //     .unwrap()
+    //     .json::<DiscordCallback>()
+    //     .await
+    //     .unwrap();
 
     let mc_profile = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", uuid))
         .send()
@@ -389,8 +389,8 @@ async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Jso
         .await
         .unwrap();
 
-    let data = UserData {
-        discord_username: discord_user.username,
+    let data = MinecraftUserData {
+        // discord_username: discord_user.username,
         minecraft_username: mc_profile.name,
         properties: mc_profile.properties,
     };
