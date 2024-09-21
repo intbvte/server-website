@@ -20,7 +20,7 @@ use rocket_governor::{rocket_governor_catcher, Method, Quota, RocketGovernable, 
 use rocket_oauth2::{OAuth2, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_scalar};
-use uuid::Uuid;
+use uuid::{uuid, Uuid};
 
 mod minecraft;
 mod app;
@@ -71,8 +71,12 @@ struct MinecraftUuidToUsername {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub struct DiscordUserData {
+    pub discord_username: String
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct MinecraftUserData {
-    // pub discord_username: String,
     pub minecraft_username: String,
     pub properties: Vec<MinecraftUuidToUsernameProperties>,
 }
@@ -171,7 +175,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid, id_to_username])
+        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid_minecraft, id_to_username_minecraft, id_to_username_discord])
         .attach(OAuth2::<Discord>::fairing("discord"))
         .register("/", catchers!(rocket_governor_catcher))
 }
@@ -290,7 +294,7 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
         return Err(ApiError::OptionError);
     }
 
-    match username_to_uuid(app, session.clone(), whitelist_data.clone().username).await {
+    match username_to_uuid_minecraft(app, session.clone(), whitelist_data.clone().username).await {
         Ok(profile) => {
             let query = query_scalar!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid", profile.id, session.user.discord_id)
                 .fetch_one(&app.db)
@@ -317,11 +321,12 @@ async fn get_user_info(session: Session) -> Json<User> {
     Json(session.user)
 }
 
-#[get("/users/username_to_uuid/<username>")]
-async fn username_to_uuid(app: &State<App>, session: Session, username: String) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
+#[get("/users/username_to_uuid/minecraft/<username>")]
+async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username: String) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
-    let cache_key = ("username_to_uuid", hasher.finish() + 10);
+    username.hash(&mut hasher);
+    let cache_key = ("username_to_uuid_minecraft", hasher.finish());
     let cache_duration = Duration::new(3600, 0);
 
     {
@@ -355,11 +360,12 @@ async fn username_to_uuid(app: &State<App>, session: Session, username: String) 
     Err(ApiError::OptionError)
 }
 
-#[get("/users/id_to_username/<uuid>")]
-async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Json<MinecraftUserData> {
+#[get("/users/id_to_username/minecraft/<uuid>")]
+async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: String) -> Json<MinecraftUserData> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
-    let cache_key = ("id_to_username", hasher.finish());
+    uuid.hash(&mut hasher);
+    let cache_key = ("id_to_username_minecraft", hasher.finish());
     let cache_duration = Duration::new(3600, 0);
 
     {
@@ -390,9 +396,47 @@ async fn id_to_username(app: &State<App>, session: Session, uuid: String) -> Jso
         .unwrap();
 
     let data = MinecraftUserData {
-        // discord_username: discord_user.username,
         minecraft_username: mc_profile.name,
         properties: mc_profile.properties,
+    };
+
+    {
+        let mut write_cache = app.cache.write().unwrap();
+        write_cache.insert(cache_key, (serde_json::to_string(&data).unwrap(), Instant::now()));
+    }
+
+    Json(data)
+}
+
+#[get("/users/id_to_username/discord/<id>")]
+async fn id_to_username_discord(app: &State<App>, session: Session, id: String) -> Json<DiscordUserData> {
+    let mut hasher = DefaultHasher::new();
+    session.hash(&mut hasher);
+    id.hash(&mut hasher);
+    let cache_key = ("id_to_username_discord", hasher.finish());
+    let cache_duration = Duration::new(3600, 0);
+
+    {
+        let mut cache = app.cache.write().unwrap();
+        cache.retain(|_, (_, timestamp)| timestamp.elapsed() < cache_duration);
+        if let Some((data, timestamp)) = cache.get(&cache_key) {
+            if timestamp.elapsed() < cache_duration {
+                let deserialized: DiscordUserData = serde_json::from_str(&data).unwrap();
+                return Json(deserialized.clone());
+            }
+        }
+    }
+
+    let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
+        .send()
+        .await
+        .unwrap()
+        .json::<DiscordCallback>()
+        .await
+        .unwrap();
+
+    let data = DiscordUserData {
+        discord_username: discord_user.username
     };
 
     {
