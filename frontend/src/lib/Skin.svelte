@@ -20,7 +20,7 @@
     const loadSkin = async (username:string) => {
         if(!gltf) return;
         console.log(username)
-        const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/${username}`)
+        const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/minecraft/${username}`)
         .catch(reason=>{
             alert("profile is incorrect")
             throw "";
