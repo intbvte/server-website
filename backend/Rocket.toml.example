@@ -1,8 +1,0 @@
-[default]
-secret_key = "secret_key"
-
-[default.oauth.discord]
-provider = "Discord"
-client_id = "client_id"
-client_secret = "client_secret"
-redirect_uri = "http://localhost:8000/backend/auth/discord"

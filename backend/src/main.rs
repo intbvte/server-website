@@ -16,11 +16,12 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, State};
+use rocket::fairing::AdHoc;
 use rocket_governor::{rocket_governor_catcher, Method, Quota, RocketGovernable, RocketGovernor};
-use rocket_oauth2::{OAuth2, TokenResponse};
+use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_scalar};
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 mod minecraft;
 mod app;
@@ -176,7 +177,16 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(app)
         .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid_minecraft, id_to_username_minecraft, id_to_username_discord])
-        .attach(OAuth2::<Discord>::fairing("discord"))
+        .attach(AdHoc::on_ignite("OAuth Config", |rocket| async {
+            let config = OAuthConfig::new(
+                StaticProvider::Discord,
+                env::var("DISCORD_CLIENT_ID").unwrap(),
+                env::var("DISCORD_CLIENT_SECRET").unwrap(),
+                Some(env::var("DISCORD_REDIRECT_URI").unwrap())
+            );
+            
+            rocket.attach(OAuth2::<Discord>::custom(HyperRustlsAdapter::default(), config))
+        }))
         .register("/", catchers!(rocket_governor_catcher))
 }
 
@@ -307,7 +317,7 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
                     }
                     minecraft::minecraft_whitelist(app, &whitelist_data).await;
 
-                    return Ok(());
+                    Ok(())
                 }
                 Err(err) => Err(ApiError::SQL(err)),
             }
