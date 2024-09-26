@@ -19,13 +19,17 @@ jobs:
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV          
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV    
+          
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-
           images: ${{ env.REGISTRY_IMAGE }}
 
       - name: Set up QEMU
