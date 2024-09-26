@@ -3,11 +3,8 @@ name: Publish Docker image
 on: [workflow_dispatch]
 
 env:
-  # Docker Package
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: Layers-of-Railways/server-website
-  # Other
-  DATABASE_URL: postgres://postgres:postgres@localhost/postgres
 
 jobs:
   build:

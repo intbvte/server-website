@@ -8,6 +8,8 @@ WORKDIR /build
 
 COPY backend/ .
 
+ENV DATABASE_URL=postgres://postgres:postgres@localhost/postgres
+
 RUN --mount=type=cache,target=/build/target \
     --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
