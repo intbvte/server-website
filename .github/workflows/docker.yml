@@ -4,7 +4,7 @@ on: [workflow_dispatch]
 
 env:
   REGISTRY: ghcr.io
-  REGISTRY_IMAGE: Layers-of-Railways/server-website
+  REGISTRY_IMAGE: layers-of-railways/server-website
 
 jobs:
   build:
