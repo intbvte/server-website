@@ -15,17 +15,6 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
-
-    services:
-      postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-
     steps:
       - name: Prepare
         run: |

@@ -8,7 +8,7 @@ WORKDIR /build
 
 COPY backend/ .
 
-ENV DATABASE_URL=postgres://postgres:postgres@localhost/postgres
+RUN cargo install sqlx-cli --no-default-features --features native-tls,postgres && cargo sqlx prepare
 
 RUN --mount=type=cache,target=/build/target \
     --mount=type=cache,target=/usr/local/cargo/registry \
