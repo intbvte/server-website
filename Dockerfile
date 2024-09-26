@@ -2,6 +2,8 @@ FROM docker.io/rust:1-slim-bookworm AS build
 
 ARG pkg=railways-server-website
 
+RUN apt-get update && apt-get install -y pkg-config libssl-dev
+
 WORKDIR /build
 
 COPY backend/ .
