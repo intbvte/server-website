@@ -9,6 +9,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Move to frontend folder
+        run: cd frontend/
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
