@@ -289,8 +289,7 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     let session_cookie = session_manager::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
     cookies.add_private(session_cookie);
 
-    //fixme change redirect location
-    Ok(Redirect::to("/"))
+    Ok(Redirect::to(env::var("BASE_URL").expect("BASE_URL is not set")))
 }
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
