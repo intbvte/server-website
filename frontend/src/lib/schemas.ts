@@ -28,12 +28,12 @@ export const minecraftProfileSchema = z.object({
 	textures: z.object({
 		SKIN: z.optional(z.object({
 			url: z.string(),
-			metadata: z.object({
+			metadata: z.optional(z.object({
 				model: z.union([
 					z.literal("slim"),
 					z.literal("slim")
 				])
-			})
+			}))
 		}))
 	})
 })
