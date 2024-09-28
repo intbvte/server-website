@@ -53,7 +53,7 @@
 						{:else}
 							Sign in to get whitelisted
 						{/if}
-					{:else if remainingTime < (1000 * 60 * 60 * 24 * 1)}
+					{:else if remainingTime < (1000 * 60 * 60 * 24)}
 						release in {remainingTimeString}
 
 					{:else}
@@ -63,10 +63,14 @@
 				</div>
 			{/if}
 		</div>
+		<!-- FIXME/TODO commented out because it's not ready yet
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		<a href="/guilds" class="bg-button text-white p-2 text-center pixelated"> Guilds </a>
+		-->
+		{#if remainingTime < 0}
 		<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
 		<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
+		{/if}
 		{#if data.user && data.user.minecraft_uuid}
 			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">
 				<div class="drop-shadow-md w-full h-32">

@@ -1,7 +1,10 @@
 [package]
-name = "contract-system"
+name = "railways-server-website"
 version = "0.1.0"
 edition = "2021"
+
+[profile.release]
+incremental = true
 
 [dependencies]
 dotenvy = "0.15.7"
