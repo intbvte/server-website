@@ -2,6 +2,7 @@
 	import { backendUrl } from '$lib/data';
 	import { minecraftUserDataSchema } from '$lib/schemas';
 	import Skin from '$lib/Skin.svelte';
+	import { day, hour, minute, second } from '$lib/time';
 	import Whitelist from '$lib/Whitelist.svelte';
 	import type { PageData } from './$types';
 
@@ -13,13 +14,13 @@
 	const getRemainingTimeString = () => {
 		let rts = remainingTime;
 		
-		const hours = Math.floor(rts / (1000 * 60 * 60));
-		rts %= 1000 * 60 * 60;
+		const hours = Math.floor(rts / hour);
+		rts %= hour;
 		
-		const minutes = Math.floor(rts / (1000 * 60));
-		rts %= 1000 * 60;
+		const minutes = Math.floor(rts / minute);
+		rts %= minute;
 		
-		const seconds = Math.floor(rts / 1000);
+		const seconds = Math.floor(rts / second);
 		
 		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`
 	}
@@ -54,7 +55,7 @@
 						{:else}
 							Sign in to get whitelisted
 						{/if}
-					{:else if remainingTime < (1000 * 60 * 60 * 24)}
+					{:else if remainingTime < day}
 						release in {remainingTimeString}
 
 					{:else}
@@ -64,17 +65,21 @@
 				</div>
 			{/if}
 		</div>
-		<!-- FIXME/TODO commented out because it's not ready yet
+		<!-- FIXME/TODO commented out because it's not ready yet -->
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
-		<a href="/guilds" class="bg-button text-white p-2 text-center pixelated"> Guilds </a>
-		-->
+		<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
+		
 		{#if remainingTime < 0}
-		<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
-		<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
+			<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
+			<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
+		{/if}
+		{#if remainingTime < day}
+			<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-button text-white p-2 text-center pixelated"> Modrinth </a>
+			<a href="https://opencollective.com/railways" class="bg-button text-white p-2 text-center pixelated"> Donate </a>
 		{/if}
 		{#if data.user && data.user.minecraft_uuid}
 			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">
-				<div class="drop-shadow-md w-full h-32">
+				<div class="drop-shadow-md w-full h-48">
 					<Skin data={{uuid: data.user.minecraft_uuid}}/>
 				</div>
 				<span class="bg-black/50 text-white px-2 py-0.5">{minecraftUsername}</span>
