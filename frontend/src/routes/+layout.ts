@@ -14,7 +14,6 @@ export async function load({ fetch }) {
 	let user: z.infer<typeof userSchema> | null = null;
 	if (response.ok) {
 		const data = await response.json()
-		console.log(data)
 		user = userSchema.parse(data);
 	}
 	return { user };
