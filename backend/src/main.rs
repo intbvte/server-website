@@ -174,9 +174,11 @@ async fn rocket() -> _ {
 
     sqlx::migrate!().run(&app.db).await.expect("Failed to apply migrations :(");
 
+    let base_route = if cfg!(debug_assertions) { "/backend/" } else { "/" };
+
     rocket::build()
         .manage(app)
-        .mount("/backend/", routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid_minecraft, id_to_username_minecraft, id_to_username_discord])
+        .mount(base_route, routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid_minecraft, id_to_username_minecraft, id_to_username_discord])
         .attach(AdHoc::on_ignite("OAuth Config", |rocket| async {
             let config = OAuthConfig::new(
                 StaticProvider::Discord,
