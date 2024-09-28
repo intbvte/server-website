@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { backendUrl } from '$lib/data';
+	import { minecraftUserDataSchema } from '$lib/schemas';
+	import Skin from '$lib/Skin.svelte';
 	import Whitelist from '$lib/Whitelist.svelte';
-import type { PageData } from './$types';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 
 
-	const releaseDate = new Date(1728154800000)
+	const releaseDate = new Date(172815480000.0)
 	let remainingTime = releaseDate.valueOf() - Date.now().valueOf();
 	const getRemainingTimeString = () => {
 		let rts = remainingTime;
@@ -27,12 +29,18 @@ import type { PageData } from './$types';
 
 		remainingTimeString = getRemainingTimeString();
 	},1000)
+
+	let minecraftUsername:string = "";
+	fetch(`${backendUrl}/users/id_to_username/minecraft/${data.user?.minecraft_uuid}`)
+		.then(res=>res.json())
+		.then(minecraftUserDataSchema.parseAsync)
+		.then(user=>minecraftUsername = user.minecraft_username)
 </script>
 
-<main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10">
-	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-full px-2" />
-	<div class="grid grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
-		<div class="col-span-2">
+<main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10 relative">
+	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2" />
+	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
+		<div class="sm:col-span-2">
 			{#if data.user && !data.user.minecraft_uuid && remainingTime < 0}
 				<Whitelist/>
 			{:else}
@@ -41,7 +49,7 @@ import type { PageData } from './$types';
 				>
 					{#if remainingTime < 0}
 						{#if data.user}
-							You are whitelisted
+							You are whitelisted<br>
 						{:else}
 							Sign in to get whitelisted
 						{/if}
@@ -59,6 +67,14 @@ import type { PageData } from './$types';
 		<a href="/guilds" class="bg-button text-white p-2 text-center pixelated"> Guilds </a>
 		<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
 		<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
+		{#if data.user && data.user.minecraft_uuid}
+			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">
+				<div class="drop-shadow-md w-full h-32">
+					<Skin data={{uuid: data.user.minecraft_uuid}}/>
+				</div>
+				<span class="bg-black/50 text-white px-2 py-0.5">{minecraftUsername}</span>
+			</div>
+		{/if}
 	</div>
 </main>
 
