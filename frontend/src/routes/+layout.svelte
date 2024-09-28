@@ -17,10 +17,8 @@
 	</div>
 	<div class="w-screen h-full z-10 absolute left-0 top-0">
 		<slot />
-		<!-- FIXME Re-enable login when backend is hosted -->
 		<div class="w-full absolute bottom-0">
 			<Navbar user={data.user} />
 		</div>
-		
 	</div>
 </div>

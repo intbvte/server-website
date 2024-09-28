@@ -1,6 +1,7 @@
 import { userSchema } from '$lib/schemas';
 import { z } from 'zod';
 import { backendUrl } from '$lib/data';
+import { dev } from '$app/environment';
 
 export const ssr = false;
 export const prerender = true;
@@ -10,7 +11,8 @@ export async function load({ fetch }) {
 		credentials: "include",
 		mode: "same-origin"
 	});
-	req.catch(console.error);
+	if (dev)
+		req.catch(console.error);
 	const response = await req;
 	let user: z.infer<typeof userSchema> | null = null;
 	if (response.ok) {

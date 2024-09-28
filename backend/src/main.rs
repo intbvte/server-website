@@ -270,11 +270,9 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
     let user = app.https.get("https://discord.com/api/users/@me")
         .header("Authorization", format!("Bearer {}", token.access_token()))
         .send()
-        .await
-        .unwrap()
+        .await?
         .json::<DiscordCallback>()
-        .await
-        .unwrap();
+        .await?;
 
     let user_id = match user.id.parse::<i64>() {
         Ok(i) => i,
@@ -285,8 +283,7 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
             VALUES ($1, $2)
             ON CONFLICT (discord_id) DO NOTHING;", user_id, user.username)
         .execute(&app.db)
-        .await
-        .unwrap();
+        .await?;
 
     let session_cookie = session_manager::generate_session_with_callback(app, user, token.access_token(), token.refresh_token().unwrap(), secs).await;
     cookies.add_private(session_cookie);
@@ -389,14 +386,6 @@ async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: Stri
             }
         }
     }
-
-    // let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
-    //     .send()
-    //     .await
-    //     .unwrap()
-    //     .json::<DiscordCallback>()
-    //     .await
-    //     .unwrap();
 
     let mc_profile = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", uuid))
         .send()
