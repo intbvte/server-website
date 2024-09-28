@@ -11,27 +11,30 @@
 
     let element:HTMLDivElement;
 
-    export let username:string;
+    export let data:{username:string}|{uuid:string}
+
 
     let gltf:GLTF|null;
     const imageLoader = new THREE.TextureLoader();
 
 
-    const loadSkin = async (username:string) => {
+    const loadSkin = async () => {
         if(!gltf) return;
-        console.log(username)
-        const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/minecraft/${username}`)
-        .catch(reason=>{
-            alert("profile is incorrect")
-            throw "";
-        })
-        .then(e=>e.json())
 
-        const {id: uuid} = uuidSchema.parse(uuidData);
+        const uuid = "uuid" in data ? data.uuid : await (async ()=>{
 
-        console.log(uuidData)
+            const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/minecraft/${data.username}`)
+            .catch(reason=>{
+                alert("profile is incorrect")
+                throw "";
+            })
+            .then(e=>e.json())
+    
+            const {id: uuid} = uuidSchema.parse(uuidData);
+            return uuid;
+        })()
 
-        const userData = await fetch(`${backendUrl}/users/id_to_username/${uuid}`).then(e=>e.json())
+        const userData = await fetch(`${backendUrl}/users/id_to_username/minecraft/${uuid}`).then(e=>e.json())
 
         const {properties} = minecraftUserDataSchema.parse(userData);
 
@@ -56,8 +59,10 @@
 
         // Create scene, camera, and renderer
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, element.clientWidth / element.clientHeight, 0.1, 1);
-        const renderer = new THREE.WebGLRenderer();
+        const camera = new THREE.PerspectiveCamera(30, element.clientWidth / element.clientHeight, 0.1, 100);
+        const renderer = new THREE.WebGLRenderer({
+            alpha: true
+        });
         renderer.outputColorSpace = THREE.LinearDisplayP3ColorSpace;
         renderer.setSize(element.clientWidth, element.clientHeight);
         element.appendChild(renderer.domElement)
@@ -70,14 +75,14 @@
         scene.add(gltf.scene)
     
         // Set camera position inside the cube
-        camera.position.set(-5, 0, 0);
+        camera.position.set(0, 1, 4);
         // camera.rotation.x = -.1
 
     
         // // Animate the scene
         function animate() {
             requestAnimationFrame(animate);
-            gltf!.scene.rotation.y += 0.0005;
+            gltf!.scene.rotation.y += 0.005;
             renderer.render(scene, camera);
         }
 
@@ -87,11 +92,15 @@
             renderer.setSize(element.clientWidth, element.clientHeight);
         });
     
+        renderer.render(scene, camera);
+
         animate();
-        loadSkin(username)
+        loadSkin()
     })
 
-    $: username, loadSkin(username);
+    $: data, loadSkin();
 </script>
 
-<div bind:this={element} class="w-full h-full m-0"/>
+<div bind:this={element} class="w-full h-full min-h-24 m-0"/>
+
+<!-- <img src={`https://vzge.me/frontfull/832/${ "username" in data ?  data.username : data.uuid }.png`} alt={`player skin of ${ "username" in data ?  data.username : data.uuid }`}> -->
