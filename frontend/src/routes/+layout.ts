@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { backendUrl } from '$lib/data';
 
 export const ssr = false;
+export const prerender = true;
 
 export async function load({ fetch }) {
 	const req = fetch(backendUrl + '/users/@me', {

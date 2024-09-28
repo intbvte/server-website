@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { backendUrl } from '$lib/data';
 	import Whitelist from '$lib/Whitelist.svelte';
-import type { PageData } from './$types';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 
