@@ -8,7 +8,7 @@
 	export let data: PageData;
 
 
-	const releaseDate = new Date(172815480000.0)
+	const releaseDate = new Date(1728154800000)
 	let remainingTime = releaseDate.valueOf() - Date.now().valueOf();
 	const getRemainingTimeString = () => {
 		let rts = remainingTime;
@@ -31,10 +31,11 @@
 	},1000)
 
 	let minecraftUsername:string = "";
-	fetch(`${backendUrl}/users/id_to_username/minecraft/${data.user?.minecraft_uuid}`)
-		.then(res=>res.json())
-		.then(minecraftUserDataSchema.parseAsync)
-		.then(user=>minecraftUsername = user.minecraft_username)
+	if(data.user && data.user.minecraft_uuid)
+		fetch(`${backendUrl}/users/id_to_username/minecraft/${data.user?.minecraft_uuid}`)
+			.then(res=>res.json())
+			.then(minecraftUserDataSchema.parseAsync)
+			.then(user=>minecraftUsername = user.minecraft_username)
 </script>
 
 <main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10 relative">
