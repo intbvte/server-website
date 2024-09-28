@@ -9,10 +9,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Move to frontend folder
-        run: |
-          cd frontend/
-
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -31,6 +27,7 @@ jobs:
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: |
+          cd frontend/
           pnpm run build
 
       - name: Upload Artifacts
