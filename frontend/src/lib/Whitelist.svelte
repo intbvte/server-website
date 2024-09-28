@@ -70,10 +70,9 @@ class="flex flex-col items-center"
 				/>
 			</div>
 			{#if username}
-				<!-- <div class=" h-96">
-					<Skin {username}/>
-				</div> -->
-				<img src={`https://vzge.me/frontfull/832/${username}.png`} alt={`player skin of ${username}`} class="bg-dark p-4">
+				<div class="p-4 bg-dark h-96">
+					<Skin data={{username}}/>
+				</div>
 				<input type="button" class="bg-button text-white p-2 text-center pixelated cursor-pointer" value="Add to whitelist" on:click={submitToWhitelist}>
 			{/if}
 		</div>
