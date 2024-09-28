@@ -44,7 +44,7 @@
 						{:else}
 							Sign in to get whitelisted
 						{/if}
-					{:else if remainingTime < (1000 * 60 * 60 * 24 * 1)}
+					{:else if remainingTime < (1000 * 60 * 60 * 24)}
 						release in {remainingTimeString}
 
 					{:else}
