@@ -64,9 +64,9 @@
 			{/if}
 		</div>
 		{#if dev || data.user && data.user.is_admin} <!--FIXME/TODO not finished yet, restricted to admins only -->
-			<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
+			<a href="/docs/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		{/if}
-		<a href="/faq" class="bg-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
+		<a href="/docs/faq" class="bg-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
 		<!-- <a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-modrinth text-white p-2 text-center pixelated"> Modrinth </a>
 		<a href="https://opencollective.com/railways" class="bg-opencollective text-[#1041a3] p-2 text-center pixelated"> Donate </a> -->
 		<div class="flex justify-between py-1 sm:col-span-2 bg-dark divide-x-2 divide-[#202020] mx-auto">

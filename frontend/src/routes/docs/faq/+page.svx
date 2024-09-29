@@ -1,0 +1,55 @@
+<svelte:head>
+	<title>FAQ</title>
+</svelte:head>
+
+# FAQ
+## Server Questions
+
+### What's the server about?
+SnR Season 2 is a Nations SMP, focusing on centralized production, rail transport, community building, and light lore.
+### Where do I download the modpack?
+Check the “download” section.
+### How do I join the server?
+Click the “Steam ‘n Rails SMP” button on the game’s main menu.
+### Where can I find the rules?
+Check the “rules” section.
+### My pack crashed! Help?
+Send us a crash log in #crash-reports on the server. 
+
+
+
+## Nation Questions
+
+### What's a nation?
+Nations are collections of players who have banded together for various reasons. There are benefits to being in a nation, such as funding for projects, easier access to materials, and so on. Nations contain guilds and businesses, and provide benefits to them while also benefiting from their trade.
+### How do I join a nation?
+Ask its leaders! Most nations will accept new members.
+How do I make a nation?
+You will need a group of other players, land to build on, exports to make you money… it's a process. 
+<!-- TODO: (Note to Szed, we'll have a guide for this, it'll need to be linked) -->
+
+
+## Guild Questions
+
+### What's a guild?
+A guild is an entity on the server that is either dedicated to producing a narrow range of products (potion, wood, stone) in bulk, or providing a specific service in bulk.
+### What can a guild do?
+Guilds are generally allowed to: 
+Make or harvest products designated as intermediates.
+Provide a generalized service (monster removal, train construction, bridge building, etc) to a nation as a whole.
+
+Intermediates are products that aren't meant to be directly consumed by a player, but can be used to make the goods that players consume. Some examples would be: flour, molten metals, bulk potion, raw vegetables or meat, cobblestone, logs and planks, lava, etc.
+Services that a guild provides should generally be contracted from a nation directly. 
+### How do I join a guild?
+Ask the members that comprise it.
+### Can I make my own guild?
+You'll need to be part of a nation to make a guild. However, businesses are not bound by nations, and can be set up wherever you want, with slightly more restrictions.
+
+## Business Questions 
+
+### What's a business?
+A business is an entity run by at least one person that sells a range of end products or specific services.
+### What's an end product?
+Anything a player would consume directly. This means food, tools, refined building blocks, bottled potions, redstone components, etc. There will be exceptions and nuance to this rule, as with all others, but generally speaking the rule is “if a player will use it directly, you can sell it.”
+
+

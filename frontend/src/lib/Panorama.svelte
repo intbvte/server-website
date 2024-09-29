@@ -21,12 +21,12 @@
     
         // Load each face of the cube with a different image
         const materials = [
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_1.webp') }), // Right
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_3.webp') }), // Left
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_4.webp') }), // Top
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_5.webp') }), // Bottom
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_0.webp') }), // Front
-            new THREE.MeshBasicMaterial({ map: loader.load('background/panorama_2.webp') })  // Back
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_1.webp') }), // Right
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_3.webp') }), // Left
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_4.webp') }), // Top
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_5.webp') }), // Bottom
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_0.webp') }), // Front
+            new THREE.MeshBasicMaterial({ map: loader.load('/background/panorama_2.webp') })  // Back
         ];
     
         // Create mesh with the cube geometry and texture materials
