@@ -35,7 +35,7 @@ class="flex flex-col items-center"
 <div class="p-3 flex mc-gray pixelated w-full gap-1">
     <input
         type="text"
-        class="bg-input pixelated px-1 text-white outline-none border-8 placeholder-white w-full block placeholder:text-lightgray"
+        class="mc-input pixelated px-1 text-white outline-none border-8 placeholder-white w-full block placeholder:text-lightgray"
         name="username"
         placeholder="Minecraft username"
         autocomplete="off"
