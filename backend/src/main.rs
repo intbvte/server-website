@@ -298,7 +298,7 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
     let current_date_time = Utc::now();
 
     // !cfg!(debug_assertions) = Not debug build
-    if current_date_time < release_date && !cfg!(debug_assertions) {
+    if current_date_time < release_date && !(cfg!(debug_assertions) || session.user.is_admin) {
         return Err(ApiError::OptionError);
     }
 
