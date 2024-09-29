@@ -65,10 +65,10 @@
 				</div>
 			{/if}
 		</div>
-		<!-- FIXME/TODO commented out because it's not ready yet -->
+		<!-- FIXME/TODO commented out because it's not ready yet
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
-		
+		-->
 		{#if remainingTime < 0}
 			<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
 			<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
