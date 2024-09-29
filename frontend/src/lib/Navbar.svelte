@@ -8,8 +8,8 @@
 <nav class="py-1 px-2 text-white">
 	{#if user != null}
 		<!-- {user} -->
-		<a href={`${backendUrl}/logout/discord`} class="underline underline-offset-2">sign out</a>
+		<a href={`${backendUrl}/logout/discord`} class="underline underline-offset-2">Sign Out</a>
 	{:else}
-		<a href={`${backendUrl}/login/discord`} class="underline underline-offset-2">sign in</a>
+		<a href={`${backendUrl}/login/discord`} class="underline underline-offset-2">Sign In</a>
 	{/if}
 </nav>
