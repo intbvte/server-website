@@ -18,7 +18,7 @@
 	<div class="w-full h-full z-10 absolute left-0 top-0">
 		<slot />
 		<div class="w-full fixed bottom-0">
-			<Navbar user={data.user} /><br>
+			<Navbar user={data.user} />
 		</div>
 	</div>
 </div>
