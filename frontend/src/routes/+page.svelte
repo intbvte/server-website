@@ -67,7 +67,7 @@
 				</div>
 			{/if}
 		</div>
-		{#if dev} <!-- FIXME/TODO not finished yet, restricted to dev only -->
+		{#if dev || data.user && data.user.is_admin} <!-- FIXME/TODO not finished yet, restricted to admins only -->
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
 		{/if}
