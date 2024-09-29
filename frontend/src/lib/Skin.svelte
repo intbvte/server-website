@@ -61,7 +61,7 @@
         
         gltf = await modelLoader.loadAsync(slim ? "/slim.glb" : "/wide.glb")
 
-        gltf.scene.position.set(0,-1,0)
+        gltf.scene.position.set(0,-1.05,0)
         gltf.scene.rotateY(Math.PI)
         
         scene?.clear()
@@ -95,7 +95,7 @@
 
         const controls = new OrbitControls(camera, renderer.domElement)
 
-        camera.position.set(0, 0, 4.1);
+        camera.position.set(0, 0, 4.3);
         controls.minPolarAngle = Math.PI/2 * 0.8;
         controls.maxPolarAngle = Math.PI/2 * 1.2;
         controls.update(0)

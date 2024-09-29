@@ -11,13 +11,13 @@
 	<title>Steam 'n' Rails SMP S2</title>
 </svelte:head>
 
-<div class="w-full bg-cover min-h-screen bg-center pixelated">
-	<div class="absolute bottom-0 w-screen overflow-x-clip h-full brightness-50">
+<div class="w-full bg-cover min-h-screen bg-center pixelated overflow-hidden font-minecraft">
+	<div class="fixed bottom-0 w-full overflow-hidden h-full brightness-50">
 		<Panorama/>
 	</div>
-	<div class="w-screen h-full z-10 absolute left-0 top-0">
+	<div class="w-full h-full z-10 absolute left-0 top-0">
 		<slot />
-		<div class="w-full absolute bottom-0">
+		<div class="w-full fixed bottom-0">
 			<Navbar user={data.user} />
 		</div>
 	</div>

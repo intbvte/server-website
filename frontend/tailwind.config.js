@@ -1,4 +1,4 @@
-import plugin from 'tailwindcss';
+import typography from "@tailwindcss/typography"
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -6,7 +6,7 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: 'Minecraft'
+				minecraft: 'Minecraft'
 			},
 			textShadow: {
 				// sm: '0 1px var(--tw-shadow-color)',
@@ -33,6 +33,7 @@ export default {
 				},
 				{ values: theme('textShadow') }
 			);
-		}
+		},
+		typography
 	]
 };

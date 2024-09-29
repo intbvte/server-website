@@ -69,14 +69,21 @@
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
 		
-		{#if remainingTime < 0}
-			<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
-			<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
-		{/if}
-		{#if remainingTime < day}
-			<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-button text-white p-2 text-center pixelated"> Modrinth </a>
-			<a href="https://opencollective.com/railways" class="bg-button text-white p-2 text-center pixelated"> Donate </a>
-		{/if}
+		<!-- <a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-modrinth text-white p-2 text-center pixelated"> Modrinth </a>
+		<a href="https://opencollective.com/railways" class="bg-opencollective text-[#1041a3] p-2 text-center pixelated"> Donate </a> -->
+		<div class="flex justify-between py-1 sm:col-span-2 bg-dark divide-x-2 divide-[#202020]">
+			{#if remainingTime < 0}
+			<!-- <a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
+			<a href="https://map.railways.ithundxr.dev/" class="bg-bluemap text-white p-2 text-center pixelated"> BlueMap </a> -->
+			<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+			<a href="https://map.railways.ithundxr.dev/" class="w-full"> <img src="/ui/bluemap_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+			{/if}
+			{#if remainingTime < day}
+				<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="w-full"> <img src="/ui/modrinth_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+				{/if}
+			<a href="https://opencollective.com/railways" class="w-full"> <img src="/ui/opencollective_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+			<a href="https://discord.gg/create-steam-n-rails-706277846389227612" class="w-full"> <img src="/ui/discord_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+		</div>
 		{#if data.user && data.user.minecraft_uuid}
 			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">
 				<div class="drop-shadow-md w-full h-48">
