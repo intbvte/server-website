@@ -58,7 +58,7 @@ class="flex flex-col items-center"
 			<div class="flex flex-row gap-1">
 				<input
 					type="text"
-					class="bg-input pixelated px-1 text-white outline-none placeholder-white w-full text-shadow block placeholder:text-lightgray disabled:text-lightgray"
+					class="mc-input pixelated px-1 text-white outline-none placeholder-white w-full text-shadow block placeholder:text-lightgray disabled:text-lightgray"
 					name="username"
 					placeholder="Minecraft username"
 					autocomplete="off"
