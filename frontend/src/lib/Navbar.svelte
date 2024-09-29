@@ -3,13 +3,11 @@
 	import type { userSchema } from '$lib/schemas';
 	import { backendUrl } from '$lib/data';
 	export let user: z.infer<typeof userSchema> | null;
+
+	let action = user != null ? "logout" : "login";
+	let text = user != null ? "Out" : "In";
 </script>
 
-<nav class="py-1 px-2 text-white">
-	{#if user != null}
-		<!-- {user} -->
-		<a href={`${backendUrl}/logout/discord`} class="underline underline-offset-2">sign out</a>
-	{:else}
-		<a href={`${backendUrl}/login/discord`} class="underline underline-offset-2">sign in</a>
-	{/if}
+<nav class="p-2.5 text-black">
+	<a href={`${backendUrl}/${action}/discord`} class="underline underline-offset-2 p-0.5 bg-gray">Sign {text}</a>
 </nav>
