@@ -6,8 +6,7 @@
 	import Whitelist from '$lib/Whitelist.svelte';
 	import type { PageData } from './$types';
 
-	// import { dev } from '$app/environment';
-	const dev = false
+	import { dev } from '$app/environment';
 
 	export let data: PageData;
 
