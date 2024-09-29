@@ -6,9 +6,13 @@
 	import Whitelist from '$lib/Whitelist.svelte';
 	import type { PageData } from './$types';
 
-	import { dev } from '$app/environment';
+	// import { dev } from '$app/environment';
+	const dev = false
+	import WhitelistModal from '$lib/WhitelistModal.svelte';
 
 	export let data: PageData;
+
+	let whitelistModal:WhitelistModal;
 
 
 	const releaseDate = new Date(1728154800000)
@@ -58,14 +62,14 @@
 					{/if}
 				</div>
 			{/if}
-			{#if dev || data.user && !data.user.minecraft_uuid && (remainingTime < 0 || data.user.is_admin)}
+			{#if data.user && !data.user.minecraft_uuid && (remainingTime < 0 || data.user.is_admin || dev)}
 				<Whitelist/>
 			{/if}
 		</div>
 		{#if dev || data.user && data.user.is_admin} <!--FIXME/TODO not finished yet, restricted to admins only -->
 			<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
 		{/if}
-		<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
+		<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated" class:col-span-2={!dev && (!data.user || !data.user.is_admin)}> FAQ </a>
 		<div class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto">
 			{#if remainingTime < 0 || dev}
 				<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
@@ -83,7 +87,9 @@
 					<Skin data={{uuid: data.user.minecraft_uuid}}/>
 				</div>
 				<span class="bg-black/50 text-white px-2 py-0.5">{minecraftUsername}</span>
+				<input type="button" class="text-white text-xs hover:underline cursor-pointer" on:click={whitelistModal.openModal} value="edit"/>
 			</div>
+			<WhitelistModal usernameInput={minecraftUsername} bind:this={whitelistModal}/>
 		{/if}
 	</div>
 </main>
