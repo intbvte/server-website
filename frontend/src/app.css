@@ -27,7 +27,8 @@
         image-rendering: pixelated;
     }
     .bg-gray{
-        border-image: url("/ui/border_gray.png") 3 fill;
+        border-image: url("/ui/border_gray.png") 3;
+        background-color: #c6c6c6;
         border-width: 6px;
         image-rendering: pixelated;
 

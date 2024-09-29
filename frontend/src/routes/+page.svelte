@@ -6,7 +6,8 @@
 	import Whitelist from '$lib/Whitelist.svelte';
 	import type { PageData } from './$types';
 
-	import { dev } from '$app/environment';
+	// import { dev } from '$app/environment';
+	const dev = false
 
 	export let data: PageData;
 
@@ -44,20 +45,12 @@
 <main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10 relative">
 	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2" />
 	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
-		<div class="sm:col-span-2">
-			{#if data.user && !data.user.minecraft_uuid && remainingTime < 0}
-				<Whitelist/>
-			{:else}
+		<div class="sm:col-span-2 flex flex-col gap-2">
+			{#if remainingTime > 0}
 				<div
 					class="col-span-2 bg-info p-4 text-center border-12 text-black flex flex-col pixelated bg-input"
 				>
-					{#if remainingTime < 0}
-						{#if data.user}
-							You are whitelisted<br>
-						{:else}
-							Sign in to get whitelisted
-						{/if}
-					{:else if remainingTime < day}
+					{#if remainingTime < day}
 						release in {remainingTimeString}
 
 					{:else}
@@ -66,25 +59,28 @@
 					{/if}
 				</div>
 			{/if}
+			{#if dev || data.user && !data.user.minecraft_uuid && (remainingTime < 0 || data.user.is_admin)}
+				<Whitelist/>
+			{/if}
 		</div>
-		{#if dev || data.user && data.user.is_admin} <!-- FIXME/TODO not finished yet, restricted to admins only -->
+		{#if dev || data.user && data.user.is_admin} <!--FIXME/TODO not finished yet, restricted to admins only -->
 			<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
-			<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
 		{/if}
+		<a href="/faq" class="bg-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
 		<!-- <a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-modrinth text-white p-2 text-center pixelated"> Modrinth </a>
 		<a href="https://opencollective.com/railways" class="bg-opencollective text-[#1041a3] p-2 text-center pixelated"> Donate </a> -->
-		<div class="flex justify-between py-1 sm:col-span-2 bg-dark divide-x-2 divide-[#202020]">
-			{#if remainingTime < 0}
-			<!-- <a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
-			<a href="https://map.railways.ithundxr.dev/" class="bg-bluemap text-white p-2 text-center pixelated"> BlueMap </a> -->
-			<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
-			<a href="https://map.railways.ithundxr.dev/" class="w-full"> <img src="/ui/bluemap_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+		<div class="flex justify-between py-1 sm:col-span-2 bg-dark divide-x-2 divide-[#202020] mx-auto">
+			{#if remainingTime < 0 || dev}
+				<!-- <a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
+				<a href="https://map.railways.ithundxr.dev/" class="bg-bluemap text-white p-2 text-center pixelated"> BlueMap </a> -->
+				<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+				<a href="https://map.railways.ithundxr.dev/" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 			{/if}
-			{#if remainingTime < day}
-				<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="w-full"> <img src="/ui/modrinth_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+			{#if remainingTime < day || dev}
+				<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="w-full"> <img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 				{/if}
-			<a href="https://opencollective.com/railways" class="w-full"> <img src="/ui/opencollective_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
-			<a href="https://discord.gg/create-steam-n-rails-706277846389227612" class="w-full"> <img src="/ui/discord_logo.png" width="32" class="pixelated mx-auto" alt=""></a>
+			<a href="https://opencollective.com/railways" class="w-full"> <img src="/ui/opencollective_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+			<a href="https://discord.gg/create-steam-n-rails-706277846389227612" class="w-full"> <img src="/ui/discord_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 		</div>
 		{#if data.user && data.user.minecraft_uuid}
 			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">

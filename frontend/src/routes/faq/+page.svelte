@@ -1,8 +1,8 @@
-<main class="max-w-3xl w-full mx-auto flex items-start flex-col my-10 gap-1 relative">
+<main class="max-w-4xl w-full mx-auto flex items-start flex-col my-10 gap-1 relative">
 	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2 mx-auto" />
     <a href=".." class="bg-gold px-2">back</a>
-	<div class="w-full p-3 bg-gray font-sans prose-headings:font-minecraft mb-20">
-		<div class="prose">
+	<div class="w-full bg-button dark:bg-slate-950 bg-white mb-20 p-5 flex flex-col items-center">
+		<div class="prose font-sans dark:prose-invert prose-headings:font-minecraft w-full p-5">
 			<h1 id="faq">FAQ</h1>
 			<h2 id="server-questions">Server Questions</h2>
 			<h3 id="what-s-the-server-about-">What&#39;s the server about?</h3>
