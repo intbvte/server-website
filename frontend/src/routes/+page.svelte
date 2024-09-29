@@ -6,6 +6,8 @@
 	import Whitelist from '$lib/Whitelist.svelte';
 	import type { PageData } from './$types';
 
+	import { dev } from '$app/environment';
+
 	export let data: PageData;
 
 
@@ -65,10 +67,10 @@
 				</div>
 			{/if}
 		</div>
-		<!-- FIXME/TODO commented out because it's not ready yet
+		{#if dev} <!-- FIXME/TODO not finished yet, restricted to dev only -->
 		<a href="/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
 		<a href="/faq" class="bg-button text-white p-2 text-center pixelated"> FAQ </a>
-		-->
+		{/if}
 		{#if remainingTime < 0}
 			<a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
 			<a href="https://map.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> BlueMap </a>
