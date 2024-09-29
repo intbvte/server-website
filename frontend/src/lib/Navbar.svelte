@@ -5,7 +5,7 @@
 	export let user: z.infer<typeof userSchema> | null;
 </script>
 
-<nav class="py-1 px-2 text-black">
+<nav class="py-2 px-2 text-black">
 	{#if user != null}
 		<!-- {user} -->
 		<a href={`${backendUrl}/logout/discord`} class="underline underline-offset-2 bg-gray">Sign Out</a>
