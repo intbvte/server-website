@@ -29,10 +29,10 @@
 <div
 class="flex flex-col items-center"
 >
-<h3 class="w-full text-center bg-gold pixelated text-lg text-darkred">
+<h3 class="w-full text-center mc-gold pixelated text-lg text-darkred">
     Get Whitelisted
 </h3>
-<div class="p-3 flex bg-gray pixelated w-full gap-1">
+<div class="p-3 flex mc-gray pixelated w-full gap-1">
     <input
         type="text"
         class="bg-input pixelated px-1 text-white outline-none border-8 placeholder-white w-full block placeholder:text-lightgray"
@@ -51,10 +51,10 @@ class="flex flex-col items-center"
 
 <dialog bind:this={dialog} class="max-w-sm w-full backdrop:bg-dither backdrop:opacity-90">
 	<!-- <form method="dialog"> -->
-		<h3 class="w-full text-center bg-gold pixelatedtext-lg text-darkred">
+		<h3 class="w-full text-center mc-gold pixelatedtext-lg text-darkred">
 			Get Whitelisted
 		</h3>
-		<div class="p-3 flex flex-col bg-gray pixelated w-full gap-1">
+		<div class="p-3 flex flex-col mc-gray pixelated w-full gap-1">
 			<div class="flex flex-row gap-1">
 				<input
 					type="text"
@@ -70,10 +70,10 @@ class="flex flex-col items-center"
 				/>
 			</div>
 			{#if username}
-				<div class="p-4 bg-dark h-96">
+				<div class="p-4 mc-dark h-96">
 					<Skin data={{username}}/>
 				</div>
-				<input type="button" class="bg-button text-white p-2 text-center pixelated cursor-pointer" value="Add to whitelist" on:click={submitToWhitelist}>
+				<input type="button" class="mc-button text-white p-2 text-center pixelated cursor-pointer" value="Add to whitelist" on:click={submitToWhitelist}>
 			{/if}
 		</div>
 	<!-- </form> -->

@@ -48,7 +48,7 @@
 		<div class="sm:col-span-2 flex flex-col gap-2">
 			{#if remainingTime > 0}
 				<div
-					class="col-span-2 bg-info p-4 text-center border-12 text-black flex flex-col pixelated bg-input"
+					class="col-span-2 mc-info p-4 text-center border-12 text-black flex flex-col pixelated"
 				>
 					{#if remainingTime < day}
 						release in {remainingTimeString}
@@ -64,15 +64,11 @@
 			{/if}
 		</div>
 		{#if dev || data.user && data.user.is_admin} <!--FIXME/TODO not finished yet, restricted to admins only -->
-			<a href="/docs/rules" class="bg-button text-white p-2 text-center pixelated"> Rules </a>
+			<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
 		{/if}
-		<a href="/docs/faq" class="bg-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
-		<!-- <a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="bg-modrinth text-white p-2 text-center pixelated"> Modrinth </a>
-		<a href="https://opencollective.com/railways" class="bg-opencollective text-[#1041a3] p-2 text-center pixelated"> Donate </a> -->
-		<div class="flex justify-between py-1 sm:col-span-2 bg-dark divide-x-2 divide-[#202020] mx-auto">
+		<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated col-span-2"> FAQ </a>
+		<div class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto">
 			{#if remainingTime < 0 || dev}
-				<!-- <a href="https://ctm.railways.ithundxr.dev/" class="bg-button text-white p-2 text-center pixelated"> Track Map </a>
-				<a href="https://map.railways.ithundxr.dev/" class="bg-bluemap text-white p-2 text-center pixelated"> BlueMap </a> -->
 				<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 				<a href="https://map.railways.ithundxr.dev/" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 			{/if}

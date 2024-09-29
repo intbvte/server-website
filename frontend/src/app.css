@@ -21,36 +21,36 @@
         image-rendering: pixelated;
         background-size: 16px;
     }
-    .bg-gold{
+    .mc-gold{
         border-image: url("/ui/border_gold.png") 3 fill;
         border-width: 6px;
         image-rendering: pixelated;
     }
-    .bg-gray{
+    .mc-gray{
         border-image: url("/ui/border_gray.png") 3;
         background-color: #c6c6c6;
         border-width: 6px;
         image-rendering: pixelated;
 
     }
-    .bg-dark{
+    .mc-dark{
         border-image: url("/ui/border_dark.png") 3 fill;
         border-width: 6px;
         image-rendering: pixelated;
 
     }
-    .bg-input{
+    .mc-input{
         border-image: url("/ui/border_text_input.png") 4 fill;
         border-width: 8px;
         image-rendering: pixelated;
     }
-    .bg-button{
+    .mc-button{
         border-image: url("/ui/border_button.png") 2;
         background-color: #747474;
         border-width: 4px;
         image-rendering: pixelated;
     }
-    .bg-info{
+    .mc-info{
         border-image: url("/ui/border_info.png") 4 fill;
         border-width: 8px;
     }

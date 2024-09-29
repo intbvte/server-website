@@ -9,5 +9,5 @@
 </script>
 
 <nav class="p-2.5 text-black">
-	<a href={`${backendUrl}/${action}/discord`} class="underline underline-offset-2 p-0.5 bg-gray">Sign {text}</a>
+	<a href={`${backendUrl}/${action}/discord`} class="p-0.5 mc-gray">Sign {text}</a>
 </nav>
