@@ -11,7 +11,7 @@
 	<title>Steam 'n' Rails SMP S2</title>
 </svelte:head>
 
-<div class="w-full bg-cover min-h-screen bg-center pixelated overflow-hidden font-minecraft">
+<div class="w-full bg-cover min-h-svh bg-center pixelated overflow-hidden font-minecraft">
 	<div class="fixed bottom-0 w-full overflow-hidden h-full brightness-50">
 		<Panorama/>
 	</div>
