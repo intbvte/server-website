@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "97bd552d13440e473fc0b14bace0fb4e178335ccaec0651a3c4fc729a563281a"
+}
