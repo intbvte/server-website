@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid",
+  "query": "SELECT minecraft_uuid FROM users WHERE discord_id = $1",
   "describe": {
     "columns": [
       {
@@ -11,7 +11,6 @@
     ],
     "parameters": {
       "Left": [
-        "Varchar",
         "Int8"
       ]
     },
@@ -19,5 +18,5 @@
       true
     ]
   },
-  "hash": "354fcfb7ebaee19964638f15e809bc324478e6492eba87a7b20289b367c069ac"
+  "hash": "1a9a5beefc8a4ff811b19aa08261bf2d4f55f05b0b88b73d0b581fc40fe414a6"
 }

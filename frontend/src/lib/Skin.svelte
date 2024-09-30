@@ -4,7 +4,7 @@
 	import { backendUrl } from '$lib/data';
 	import { minecraftProfileSchema, minecraftUserDataSchema, uuidSchema } from './schemas';
 	import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
-	import { Mesh } from 'three/src/objects/Mesh.js';
+	import type { Mesh } from 'three/src/objects/Mesh.js';
 	import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js';
 	import type { Scene } from 'three/src/scenes/Scene.js';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
