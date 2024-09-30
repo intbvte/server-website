@@ -8,17 +8,19 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
+        config:
+          - platform: linux/amd64
+            runner: blacksmith-2vcpu-ubuntu-2204
+          - platform: linux/arm64
+            runner: blacksmith-2vcpu-ubuntu-2204-arm
+    runs-on: ${{ matrix.config.runner }}
     steps:
       - name: Prepare
         run: |
-          platform=${{ matrix.platform }}
+          platform=${{ matrix.config.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV    
 
       - name: Docker meta
@@ -44,7 +46,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          platforms: ${{ matrix.platform }}
+          platforms: ${{ matrix.config.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
