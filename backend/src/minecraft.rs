@@ -14,7 +14,7 @@ pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whiteli
     ).await
 }
 
-pub async fn minecraft_whitelist_remove(app: &State<App>, username: String) {
+pub async fn minecraft_whitelist_remove(app: &State<App>, username: &str) {
     run_command(
         app,
         format!("whitelist remove {}", username),

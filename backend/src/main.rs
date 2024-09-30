@@ -20,7 +20,7 @@ use rocket::fairing::AdHoc;
 use rocket_governor::{rocket_governor_catcher, Method, Quota, RocketGovernable, RocketGovernor};
 use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
-use sqlx::{query, query_scalar};
+use sqlx::query;
 use uuid::Uuid;
 
 mod minecraft;
@@ -44,10 +44,8 @@ struct DiscordCallback {
 #[derive(Deserialize)]
 struct DiscordAccessTokenResponse {
     access_token: String,
-    _token_type: String,
     expires_in: i64,
     refresh_token: String,
-    _scope: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -302,23 +300,26 @@ async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGoverno
         return Err(ApiError::OptionError);
     }
 
-    match username_to_uuid_minecraft(app, session.clone(), whitelist_data.clone().username).await {
+    let old_username_query = query!("SELECT minecraft_uuid FROM users WHERE discord_id = $1", &session.user.discord_id)
+        .fetch_optional(&app.db)
+        .await?;
+
+    match username_to_uuid_minecraft(app, session.clone(), &whitelist_data.clone().username).await {
         Ok(profile) => {
-            let query = query_scalar!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2 RETURNING minecraft_uuid", profile.id, session.user.discord_id)
-                .fetch_one(&app.db)
-                .await;
+            query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
+                .execute(&app.db)
+                .await?;
 
-            match query {
-                Ok(result) => {
-                    if let Some(old_username) = result {
-                        minecraft::minecraft_whitelist_remove(app, old_username).await;
-                    }
-                    minecraft::minecraft_whitelist(app, &whitelist_data).await;
-
-                    Ok(())
+            
+            if let Some(query) = old_username_query {
+                if let Some(uuid) = query.minecraft_uuid {
+                    let username = &id_to_username_minecraft(app, session.clone(), &uuid).await.minecraft_username;
+                    minecraft::minecraft_whitelist_remove(app, username).await;
                 }
-                Err(err) => Err(ApiError::SQL(err)),
             }
+            minecraft::minecraft_whitelist(app, &whitelist_data).await;
+            
+            Ok(())
         },
         Err(err) => Err(err)
     }
@@ -330,7 +331,7 @@ async fn get_user_info(session: Session) -> Json<User> {
 }
 
 #[get("/users/username_to_uuid/minecraft/<username>")]
-async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username: String) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
+async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username: &str) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     username.hash(&mut hasher);
@@ -369,7 +370,7 @@ async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username
 }
 
 #[get("/users/id_to_username/minecraft/<uuid>")]
-async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: String) -> Json<MinecraftUserData> {
+async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: &str) -> Json<MinecraftUserData> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     uuid.hash(&mut hasher);
@@ -409,7 +410,7 @@ async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: Stri
 }
 
 #[get("/users/id_to_username/discord/<id>")]
-async fn id_to_username_discord(app: &State<App>, session: Session, id: String) -> Json<DiscordUserData> {
+async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) -> Json<DiscordUserData> {
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     id.hash(&mut hasher);
