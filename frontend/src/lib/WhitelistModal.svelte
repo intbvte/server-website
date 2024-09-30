@@ -29,8 +29,9 @@
 
 <dialog bind:this={dialog} class="max-w-sm w-full backdrop:bg-dither backdrop:opacity-90">
 	<!-- <form method="dialog"> -->
-		<h3 class="w-full text-center mc-gold pixelatedtext-lg text-darkred">
+		<h3 class="w-full text-center mc-gold pixelatedtext-lg text-darkred relative">
 			Get Whitelisted
+            <input type="button" class="absolute right-2 cursor-pointer" value="x" on:click={()=>dialog.close()}>
 		</h3>
 		<div class="p-3 flex flex-col mc-gray pixelated w-full gap-1">
 			<div class="flex flex-row gap-1">
