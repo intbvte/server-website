@@ -72,22 +72,22 @@
 		{/if}
 		<div class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto">
 			{#if remainingTime < 0 || dev}
-				<a href="https://ctm.railways.ithundxr.dev/" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
-				<a href="https://map.railways.ithundxr.dev/" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+				<!-- <a href="https://ctm.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
+				<a href="https://map.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 			{/if}
 			{#if remainingTime < day || dev}
-				<a href="https://modrinth.com/modpack/steam-n-rails-modpack" class="w-full"> <img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
-				{/if}
-			<a href="https://opencollective.com/railways" class="w-full"> <img src="/ui/opencollective_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
-			<a href="https://discord.gg/create-steam-n-rails-706277846389227612" class="w-full"> <img src="/ui/discord_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+				<a href="https://modrinth.com/modpack/steam-n-rails-modpack" target="_blank" class="w-full"> <img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+			{/if}
+			<a href="https://opencollective.com/railways" target="_blank" class="w-full"> <img src="/ui/opencollective_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+			<a href="https://discord.gg/create-steam-n-rails-706277846389227612" target="_blank" class="w-full"> <img src="/ui/discord_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 		</div>
 		{#if data.user && data.user.minecraft_uuid}
-			<div class="absolute right-full w-32 flex flex-col items-center gap-2 m-2">
+			<div class="sm:absolute mx-auto sm:mx-5 sm:col-span-2 right-full w-32 flex flex-col items-center m-2">
+				<span class="bg-black/50 text-white px-2 py-0.5">{minecraftUsername}</span>
 				<div class="drop-shadow-md w-full h-48">
 					<Skin data={{uuid: data.user.minecraft_uuid}}/>
 				</div>
-				<span class="bg-black/50 text-white px-2 py-0.5">{minecraftUsername}</span>
-				<input type="button" class="text-white text-xs hover:underline cursor-pointer" on:click={whitelistModal.openModal} value="edit"/>
+				<input type="button" class="text-white/50 text-xs hover:underline cursor-pointer" on:click={whitelistModal.openModal} value="Change"/>
 			</div>
 			<WhitelistModal usernameInput={minecraftUsername} bind:this={whitelistModal}/>
 		{/if}
