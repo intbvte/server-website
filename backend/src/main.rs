@@ -17,7 +17,6 @@ use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, State};
 use rocket::fairing::AdHoc;
-use rocket_governor::{rocket_governor_catcher, Method, Quota, RocketGovernable, RocketGovernor};
 use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
@@ -101,13 +100,6 @@ pub struct Session {
     pub expired: bool,
 }
 
-pub struct RateLimitGuard;
-impl<'r> RocketGovernable<'r> for RateLimitGuard {
-    fn quota(_method: Method, _route_name: &str) -> Quota {
-        Quota::per_minute(Self::nonzero(3u32))
-    }
-}
-
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for Session {
     type Error = String;
@@ -187,7 +179,6 @@ async fn rocket() -> _ {
             
             rocket.attach(OAuth2::<Discord>::custom(HyperRustlsAdapter::default(), config))
         }))
-        .register("/", catchers!(rocket_governor_catcher))
 }
 
 #[get("/login/discord")]
@@ -290,7 +281,7 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 }
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
-async fn minecraft_username_change(app: &State<App>, _limit_guard: RocketGovernor<'_, RateLimitGuard>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
+async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
     let release_date = New_York.with_ymd_and_hms(2024, 10, 5, 15, 0, 0).unwrap();
 
     let current_date_time = Utc::now();
