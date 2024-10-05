@@ -72,7 +72,7 @@
 		{/if}
 		<div class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto">
 			{#if remainingTime < 0 || dev}
-				<a href="https://ctm.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
+				<!-- <a href="https://ctm.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
 				<a href="https://map.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
 			{/if}
 			{#if remainingTime < day || dev}
