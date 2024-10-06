@@ -23,7 +23,9 @@
 	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2" />
 	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
 		<div class="sm:col-span-2 flex flex-col gap-2">
-			<Whitelist/>
+			{#if data.user && !data.user.minecraft_uuid}
+				<Whitelist/>
+			{/if}
 		</div>
 			<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
 			<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated"> FAQ </a>
