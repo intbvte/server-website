@@ -16,7 +16,7 @@
       {
         "ordinal": 2,
         "name": "minecraft_uuid",
-        "type_info": "Varchar"
+        "type_info": "Uuid"
       },
       {
         "ordinal": 3,
@@ -32,6 +32,11 @@
         "ordinal": 5,
         "name": "is_admin",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "banned",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -43,6 +48,7 @@
       false,
       false,
       true,
+      false,
       false,
       false,
       false

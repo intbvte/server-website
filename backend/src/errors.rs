@@ -20,6 +20,8 @@ pub enum ApiError {
     RateLimited,
     #[error("Attempted to get a non-none value but found none")]
     OptionError,
+    #[error("Bad Request")]
+    BadRequest,
     #[error("Attempted to parse a number to an integer but errored out: {0}")]
     ParseIntError(#[from] std::num::TryFromIntError),
     #[error("Attempted to parse a string to an integer but errored out: {0}")]
@@ -40,6 +42,7 @@ impl<'r> Responder<'r, 'static> for ApiError {
                 Status::InternalServerError,
                 "Attempted to get a non-none value but found none".to_string(),
             ),
+            Self::BadRequest => (Status::BadRequest, "Bad Request!".to_string()),
             Self::ParseIntError(e) => (Status::InternalServerError, e.to_string()),
             Self::ParseStringAsIntError(e) => (Status::InternalServerError, e.to_string()),
             Self::FromRequestPartsError(e) => (Status::InternalServerError, e.to_string()),

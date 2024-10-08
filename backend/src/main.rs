@@ -17,6 +17,7 @@ use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, State};
 use rocket::fairing::AdHoc;
+use rocket::futures::future::err;
 use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
@@ -51,7 +52,7 @@ struct DiscordAccessTokenResponse {
 struct MinecraftUsernameToUuid {
     #[allow(dead_code)]
     name: String,
-    id: String,
+    id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -82,7 +83,7 @@ pub struct MinecraftUserData {
 #[derive(Serialize, Hash, Clone)]
 pub struct User {
     pub discord_id: i64,
-    pub minecraft_uuid: Option<String>,
+    pub minecraft_uuid: Option<Uuid>,
     #[serde(with = "ts_seconds_option")]
     pub created_at: Option<DateTime<Utc>>,
     #[serde(with = "ts_seconds_option")]
@@ -98,6 +99,13 @@ pub struct Session {
     pub refresh_token: String,
     pub expires_at: DateTime<Utc>,
     pub expired: bool,
+}
+
+pub struct APIKey {}
+
+#[derive(Deserialize)]
+pub struct BanData {
+    pub uuid: Uuid
 }
 
 #[rocket::async_trait]
@@ -156,6 +164,21 @@ impl<'r> FromRequest<'r> for Session {
     }
 }
 
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for APIKey {
+    type Error = String;
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        if let Some(auth_key) = request.headers().get_one("Authorization") {
+            if auth_key == env::var("RAILWAYS_TWEAKS_API_KEY").unwrap() {
+                return Outcome::Success(APIKey {});
+            }
+        }
+        
+        Outcome::Error((Status::BadRequest, "A error occurred with that request".to_string()))
+    }
+}
+
 #[launch]
 async fn rocket() -> _ {
     dotenv().ok();
@@ -168,7 +191,17 @@ async fn rocket() -> _ {
 
     rocket::build()
         .manage(app)
-        .mount(base_route, routes![discord_login, discord_logout, discord_callback, minecraft_username_change, get_user_info, username_to_uuid_minecraft, id_to_username_minecraft, id_to_username_discord])
+        .mount(base_route, routes![
+            discord_login,
+            discord_logout,
+            discord_callback,
+            minecraft_username_change,
+            get_user_info,
+            username_to_uuid_minecraft,
+            id_to_username_minecraft,
+            id_to_username_discord,
+            minecraft_ban
+        ])
         .attach(AdHoc::on_ignite("OAuth Config", |rocket| async {
             let config = OAuthConfig::new(
                 StaticProvider::Discord,
@@ -290,30 +323,37 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
     if current_date_time < release_date && !(cfg!(debug_assertions) || session.user.is_admin) {
         return Err(ApiError::OptionError);
     }
-
-    let old_username_query = query!("SELECT minecraft_uuid FROM users WHERE discord_id = $1", &session.user.discord_id)
+    
+    let query_optional = query!("SELECT minecraft_uuid, banned FROM users WHERE discord_id = $1", &session.user.discord_id)
         .fetch_optional(&app.db)
         .await?;
 
-    match username_to_uuid_minecraft(app, session.clone(), &whitelist_data.clone().username).await {
-        Ok(profile) => {
-            query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
-                .execute(&app.db)
-                .await?;
+    if let Some(query) = query_optional {
+        if query.banned  {
+            return Err(ApiError::BadRequest);
+        }
+        
+        return match username_to_uuid_minecraft(app, session.clone(), &whitelist_data.clone().username).await {
+            Ok(profile) => {
+                query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
+                    .execute(&app.db)
+                    .await?;
 
-            
-            if let Some(query) = old_username_query {
+
                 if let Some(uuid) = query.minecraft_uuid {
-                    let username = &id_to_username_minecraft(app, session.clone(), &uuid).await.minecraft_username;
+                    let username = &id_to_username_minecraft(app, session.clone(), &uuid.to_string()).await.minecraft_username;
                     minecraft::minecraft_whitelist_remove(app, username).await;
                 }
-            }
-            minecraft::minecraft_whitelist(app, &whitelist_data).await;
-            
-            Ok(())
-        },
-        Err(err) => Err(err)
+                
+                minecraft::minecraft_whitelist(app, &whitelist_data).await;
+
+                Ok(())
+            },
+            Err(err) => Err(err)
+        }
     }
+
+    Err(ApiError::BadRequest)
 }
 
 #[get("/users/@me")]
@@ -437,4 +477,13 @@ async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) ->
     }
 
     Json(data)
+}
+
+#[post("/minecraft/ban", data = "<ban_data>")]
+async fn minecraft_ban(app: &State<App>, api_key: APIKey, ban_data: Json<BanData>) -> Status {
+    query!("UPDATE users SET banned = true WHERE minecraft_uuid = $1", ban_data.uuid)
+        .fetch_optional(&app.db)
+        .await
+        .unwrap();
+    Status::Ok
 }
