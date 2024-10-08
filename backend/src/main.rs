@@ -2,11 +2,10 @@
 extern crate rocket;
 
 use chrono::serde::ts_seconds_option;
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::{Duration, Instant};
-use chrono_tz::America::New_York;
 use crate::app::App;
 use crate::errors::ApiError;
 use dotenvy::dotenv;
@@ -316,15 +315,6 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
 async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
-    let release_date = New_York.with_ymd_and_hms(2024, 10, 5, 15, 0, 0).unwrap();
-
-    let current_date_time = Utc::now();
-
-    // !cfg!(debug_assertions) = Not debug build
-    if current_date_time < release_date && !(cfg!(debug_assertions) || session.user.is_admin) {
-        return Err(ApiError::OptionError);
-    }
-    
     let query_optional = query!("SELECT minecraft_uuid, banned FROM users WHERE discord_id = $1", &session.user.discord_id)
         .fetch_optional(&app.db)
         .await?;
