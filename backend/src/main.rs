@@ -89,6 +89,7 @@ pub struct User {
     #[serde(with = "ts_seconds_option")]
     pub last_updated: Option<DateTime<Utc>>,
     pub is_admin: bool,
+    pub banned: bool
 }
 
 #[derive(Hash, Clone)]
@@ -149,6 +150,7 @@ impl<'r> FromRequest<'r> for Session {
                             created_at: Some(user.created_at),
                             last_updated: Some(user.last_updated),
                             is_admin: user.is_admin,
+                            banned: user.banned
                         },
                         session_id: session.session_id,
                         access_token: session.access_token,
