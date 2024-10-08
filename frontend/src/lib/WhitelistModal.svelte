@@ -14,7 +14,7 @@
     }
 
 	const submitToWhitelist = async () => {
-		await fetch(`${backendUrl}/minecraft/username/change`, {
+		const res = await fetch(`${backendUrl}/minecraft/username/change`, {
 			method: "POST",
 			credentials: "include",
 			headers: {
@@ -23,6 +23,8 @@
 			body: `username=${username}`,
 			mode: "no-cors"
 		})
+		if(!res.ok)
+			alert(res.statusText)
 		window.location.reload();
 	}
 </script>
@@ -42,6 +44,7 @@
 					placeholder="Minecraft username"
 					autocomplete="off"
 					spellcheck="false"
+					maxlength="16"
 					bind:value={usernameInput}
 					on:focusout={()=>username = usernameInput}
 					on:keyup={e=>{if(e.key == "Enter") username = usernameInput}}

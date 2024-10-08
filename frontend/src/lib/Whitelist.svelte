@@ -19,6 +19,7 @@ class="flex flex-col items-center"
         autocomplete="off"
         spellcheck="false"
         bind:value={usernameInput}
+        maxlength="16"
         on:keyup={e=>{if(e.key == "Enter") whitelistModal.openModal()}}
     />
     <button type="button" on:click={whitelistModal.openModal} class="outline-none">
