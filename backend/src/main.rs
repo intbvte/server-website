@@ -17,7 +17,6 @@ use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, State};
 use rocket::fairing::AdHoc;
-use rocket::futures::future::err;
 use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
@@ -337,19 +336,28 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
         
         return match username_to_uuid_minecraft(app, session.clone(), &whitelist_data.clone().username).await {
             Ok(profile) => {
-                query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
+                let result = query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
                     .execute(&app.db)
-                    .await?;
+                    .await;
 
+                match result {
+                    Ok(_) => {
+                        if let Some(uuid) = query.minecraft_uuid {
+                            let username = &id_to_username_minecraft(app, session.clone(), &uuid.to_string()).await.minecraft_username;
+                            minecraft::minecraft_whitelist_remove(app, username).await;
+                        }
 
-                if let Some(uuid) = query.minecraft_uuid {
-                    let username = &id_to_username_minecraft(app, session.clone(), &uuid.to_string()).await.minecraft_username;
-                    minecraft::minecraft_whitelist_remove(app, username).await;
+                        minecraft::minecraft_whitelist(app, &whitelist_data).await;
+
+                        Ok(())
+                    },
+                    Err(sqlx::Error::Database(err)) if err.constraint() == Some("unique_minecraft_uuid") => {
+                        return Err(ApiError::CollisionError);
+                    },
+                    Err(_) => {
+                        return Err(ApiError::BadRequest);
+                    }
                 }
-                
-                minecraft::minecraft_whitelist(app, &whitelist_data).await;
-
-                Ok(())
             },
             Err(err) => Err(err)
         }
