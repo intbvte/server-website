@@ -116,11 +116,11 @@
             renderer.render(scene!, camera);
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = element.clientWidth / element.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(element.clientWidth, element.clientHeight);
-        });
+        // window.addEventListener('resize', () => {
+        //     camera.aspect = element.clientWidth / element.clientHeight;
+        //     camera.updateProjectionMatrix();
+        //     renderer.setSize(element.clientWidth, element.clientHeight);
+        // });
     
         renderer.render(scene, camera);
 

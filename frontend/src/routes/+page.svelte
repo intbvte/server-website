@@ -29,6 +29,8 @@
 		</div>
 			<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
 			<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated"> FAQ </a>
+			<a href="/mods" class="mc-button text-white p-2 text-center pixelated"> Modlist </a>
+			<a href="/docs/guilds" class="mc-button text-white p-2 text-center pixelated"> Economy </a>
 		<div class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto">
 			<!-- <a href="https://ctm.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
 			<a href="https://map.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a>
