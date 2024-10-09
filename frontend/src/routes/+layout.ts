@@ -5,6 +5,7 @@ import { dev } from '$app/environment';
 
 export const ssr = false;
 export const prerender = true;
+export const trailingSlash = 'always';
 
 export async function load({ fetch }) {
 	const req = fetch(backendUrl + '/users/@me', {
