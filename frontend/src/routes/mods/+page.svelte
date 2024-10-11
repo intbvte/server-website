@@ -10,7 +10,7 @@
 
 <main class="max-w-3xl w-full mx-auto flex items-start flex-col my-10 gap-2 relative pb-32">
     <a href=".." class="mc-gold px-2">Back</a>
-    <a href="https://modrinth.com/modpack/steam-n-rails-modpack" target="_blank">
+    <a href={`https://modrinth.com/modpack/steam-n-rails-modpack/version/${data.latest.version_number}`} target="_blank">
         <h1 class=" text-2xl px-2 mc-gray">Modlist v{data.latest.version_number}</h1>
     </a>
     <div class=" w-full flex flex-col gap-2">
