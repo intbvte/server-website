@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fetchWithSchema } from "$lib";
+  import { safeFetchWithSchema } from "$lib";
 	import type { z } from "zod";
 	import { serverStatusSchema } from "./schemas";
 	import { onMount } from "svelte";
@@ -8,7 +8,7 @@
 
   let data:z.infer<typeof serverStatusSchema>|undefined;
   onMount(async()=>{
-    const status = await fetchWithSchema(new Request(`https://api.mcsrvstat.us/3/${ip}`), serverStatusSchema)
+    const status = await safeFetchWithSchema(new Request(`https://api.mcsrvstat.us/3/${ip}`), serverStatusSchema)
     if(!status.success) return;
     data = status.data;
   })

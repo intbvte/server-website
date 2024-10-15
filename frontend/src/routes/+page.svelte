@@ -6,7 +6,7 @@
 	import type { PageData } from './$types';
 
 	import WhitelistModal from '$lib/WhitelistModal.svelte';
-	import { fetchWithSchema } from '$lib';
+	import { safeFetchWithSchema } from '$lib';
 	import Status from '$lib/Status.svelte';
 
 	export let data: PageData;
@@ -21,7 +21,7 @@
 	// 		.then(user=>minecraftUsername = user.minecraft_username)
 
 	if(data.user && data.user.minecraft_uuid)
-		fetchWithSchema(new Request(`${backendUrl}/users/id_to_username/minecraft/${data.user?.minecraft_uuid}`), minecraftUserDataSchema)
+		safeFetchWithSchema(new Request(`${backendUrl}/users/id_to_username/minecraft/${data.user?.minecraft_uuid}`), minecraftUserDataSchema)
 			.then(data=>{if(data.success) minecraftUsername = data.data.minecraft_username})
 </script>
 

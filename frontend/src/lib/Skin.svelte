@@ -8,7 +8,7 @@
 	import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js';
 	import type { Scene } from 'three/src/scenes/Scene.js';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-	import { fetchWithSchema } from '$lib';
+	import { safeFetchWithSchema } from '$lib';
 
 
     let element:HTMLDivElement;
@@ -26,13 +26,13 @@
         console.log(gltf)
 
         const uuid = "uuid" in data ? data.uuid : await (async ()=>{
-            const {success, data: uuidData} = await fetchWithSchema(new Request(`${backendUrl}/users/username_to_uuid/minecraft/${data.username}`), uuidSchema)
+            const {success, data: uuidData} = await safeFetchWithSchema(new Request(`${backendUrl}/users/username_to_uuid/minecraft/${data.username}`), uuidSchema)
             if(!success) throw alert("profile is incorrect");
             const {id: uuid} = uuidData
             return uuid;
         })()
 
-        const {success, data: userData} = await fetchWithSchema(new Request(`${backendUrl}/users/id_to_username/minecraft/${uuid}`), minecraftUserDataSchema)
+        const {success, data: userData} = await safeFetchWithSchema(new Request(`${backendUrl}/users/id_to_username/minecraft/${uuid}`), minecraftUserDataSchema)
         if(!success) throw alert("internal error");
 
         const {properties} = userData
