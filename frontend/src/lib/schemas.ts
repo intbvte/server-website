@@ -11,78 +11,81 @@ export const userSchema = z.object({
 export const uuidSchema = z.object({
 	id: z.string(),
 	name: z.string()
-})
+});
 
 export const minecraftUserDataSchema = z.object({
 	minecraft_username: z.string(),
-	properties: z.array(z.object({
-		name: z.string(),
-		value: z.string()
-	}))
-})
+	properties: z.array(
+		z.object({
+			name: z.string(),
+			value: z.string()
+		})
+	)
+});
 
 export const minecraftProfileSchema = z.object({
 	timestamp: z.number(),
 	profileId: z.string(),
 	profileName: z.string(),
 	textures: z.object({
-		SKIN: z.optional(z.object({
-			url: z.string(),
-			metadata: z.optional(z.object({
-				model: z.union([
-					z.literal("slim"),
-					z.literal("slim")
-				])
-			}))
-		}))
+		SKIN: z.optional(
+			z.object({
+				url: z.string(),
+				metadata: z.optional(
+					z.object({
+						model: z.union([z.literal('slim'), z.literal('slim')])
+					})
+				)
+			})
+		)
 	})
-})
+});
 
 export const versionsSchema = z.array(
 	z.object({
-	  game_versions: z.array(z.string()),
-	  loaders: z.array(z.string()),
-	  id: z.string(),
-	  project_id: z.string(),
-	  author_id: z.string(),
-	  featured: z.boolean(),
-	  name: z.string(),
-	  version_number: z.string(),
-	  changelog: z.string(),
-	  changelog_url: z.null(),
-	  date_published: z.string(),
-	  downloads: z.number(),
-	  version_type: z.string(),
-	  status: z.string(),
-	  requested_status: z.null(),
-	  files: z.array(
-		z.object({
-		  hashes: z.object({ sha512: z.string(), sha1: z.string() }),
-		  url: z.string(),
-		  filename: z.string(),
-		  primary: z.boolean(),
-		  size: z.number(),
-		  file_type: z.null()
-		})
-	  ),
-	  dependencies: z.array(
-		z.union([
-		  z.object({
-			version_id: z.string(),
-			project_id: z.string(),
-			file_name: z.null(),
-			dependency_type: z.string()
-		  }),
-		  z.object({
-			version_id: z.null(),
-			project_id: z.null(),
-			file_name: z.string(),
-			dependency_type: z.string()
-		  })
-		])
-	  )
+		game_versions: z.array(z.string()),
+		loaders: z.array(z.string()),
+		id: z.string(),
+		project_id: z.string(),
+		author_id: z.string(),
+		featured: z.boolean(),
+		name: z.string(),
+		version_number: z.string(),
+		changelog: z.string(),
+		changelog_url: z.null(),
+		date_published: z.string(),
+		downloads: z.number(),
+		version_type: z.string(),
+		status: z.string(),
+		requested_status: z.null(),
+		files: z.array(
+			z.object({
+				hashes: z.object({ sha512: z.string(), sha1: z.string() }),
+				url: z.string(),
+				filename: z.string(),
+				primary: z.boolean(),
+				size: z.number(),
+				file_type: z.null()
+			})
+		),
+		dependencies: z.array(
+			z.union([
+				z.object({
+					version_id: z.string(),
+					project_id: z.string(),
+					file_name: z.null(),
+					dependency_type: z.string()
+				}),
+				z.object({
+					version_id: z.null(),
+					project_id: z.null(),
+					file_name: z.string(),
+					dependency_type: z.string()
+				})
+			])
+		)
 	})
-  )
+);
 
 export const projectsSchema = z.array(
 	z.object({
@@ -104,10 +107,12 @@ export const projectsSchema = z.array(
 		queued: z.nullable(z.string()),
 		status: z.string(),
 		requested_status: z.nullable(z.string()),
-		moderator_message: z.nullable(z.object({
-			message: z.string(),
-			body: z.string()
-		})),
+		moderator_message: z.nullable(
+			z.object({
+				message: z.string(),
+				body: z.string()
+			})
+		),
 		license: z.object({ id: z.string(), name: z.string(), url: z.nullable(z.string()) }),
 		downloads: z.number(),
 		followers: z.number(),
@@ -128,18 +133,49 @@ export const projectsSchema = z.array(
 			})
 		),
 		gallery: z.array(
-		z.object({
-			url: z.string(),
-			raw_url: z.string(),
-			featured: z.boolean(),
-			title: z.nullable(z.string()),
-			description: z.nullable(z.string()),
-			created: z.string(),
-			ordering: z.number()
-		})
+			z.object({
+				url: z.string(),
+				raw_url: z.string(),
+				featured: z.boolean(),
+				title: z.nullable(z.string()),
+				description: z.nullable(z.string()),
+				created: z.string(),
+				ordering: z.number()
+			})
 		),
 		color: z.nullable(z.number()),
 		thread_id: z.string(),
 		monetization_status: z.string()
+	})
+);
+
+export const serverStatusSchema = z.union([
+	z.object({
+		ip: z.string(),
+		port: z.number(),
+		debug: z.unknown(),
+		motd: z.object({
+			raw: z.array(z.string()),
+			clean: z.array(z.string()),
+			html: z.array(z.string())
+		}),
+		players: z.object({
+			online: z.number(),
+			max: z.number(),
+			list: z.array(z.object({ name: z.string(), uuid: z.string() }))
+		}),
+		version: z.string(),
+		online: z.literal(true),
+		protocol: z.object({ version: z.number(), name: z.string() }),
+		hostname: z.string(),
+		map: z.object({ raw: z.string(), clean: z.string(), html: z.string() }),
+		eula_blocked: z.boolean()
 	}),
-)
+	z.object({
+		ip: z.string(),
+		port: z.number(),
+		debug: z.unknown(),
+		hostname: z.string(),
+		online: z.literal(false)
+	})
+]);
