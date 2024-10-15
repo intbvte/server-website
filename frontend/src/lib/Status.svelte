@@ -23,6 +23,6 @@
     {:else}
       Server status loading
     {/if}
-    <div class="text-sm text-gray">{data ? data.hostname : ip}</div>
+    <div class="text-sm text-gray">{ip}</div>
 </div>
 

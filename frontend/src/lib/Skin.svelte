@@ -8,6 +8,7 @@
 	import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js';
 	import type { Scene } from 'three/src/scenes/Scene.js';
 	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+	import { fetchWithSchema } from '$lib';
 
 
     let element:HTMLDivElement;
@@ -25,21 +26,16 @@
         console.log(gltf)
 
         const uuid = "uuid" in data ? data.uuid : await (async ()=>{
-
-            const uuidData = await fetch(`${backendUrl}/users/username_to_uuid/minecraft/${data.username}`)
-            .catch(reason=>{
-                alert("profile is incorrect")
-                throw "";
-            })
-            .then(e=>e.json())
-    
-            const {id: uuid} = uuidSchema.parse(uuidData);
+            const {success, data: uuidData} = await fetchWithSchema(new Request(`${backendUrl}/users/username_to_uuid/minecraft/${data.username}`), uuidSchema)
+            if(!success) throw alert("profile is incorrect");
+            const {id: uuid} = uuidData
             return uuid;
         })()
 
-        const userData = await fetch(`${backendUrl}/users/id_to_username/minecraft/${uuid}`).then(e=>e.json())
+        const {success, data: userData} = await fetchWithSchema(new Request(`${backendUrl}/users/id_to_username/minecraft/${uuid}`), minecraftUserDataSchema)
+        if(!success) throw alert("internal error");
 
-        const {properties} = minecraftUserDataSchema.parse(userData);
+        const {properties} = userData
 
         console.log(JSON.parse(atob(properties[0].value)))
 
