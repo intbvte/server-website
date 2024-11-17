@@ -1,4 +1,4 @@
-FROM docker.io/rust:1-slim-bookworm AS build
+FROM docker.io/rust:1-slim-bookworm AS backend-build
 
 ARG pkg=railways-server-website
 
@@ -17,6 +17,21 @@ RUN --mount=type=cache,target=/build/target \
 
 ################################################################################
 
+FROM node:20-slim AS frontend-build
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+WORKDIR /frontend
+
+COPY frontend/ .
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm build
+
+################################################################################
+
 FROM docker.io/debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -24,7 +39,10 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 WORKDIR /app
 
 ## Copy the main binary
-COPY --from=build /build/main ./
+COPY --from=backend-build /build/main ./
+
+## Copy frontend
+COPY --from=frontend-build /frontend/build ./static
 
 ## Ensure the container listens globally on port 8080
 ENV ROCKET_ADDRESS=0.0.0.0

@@ -16,6 +16,7 @@ use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, State};
 use rocket::fairing::AdHoc;
+use rocket::fs::FileServer;
 use rocket_oauth2::{HyperRustlsAdapter, OAuth2, OAuthConfig, StaticProvider, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::query;
@@ -187,11 +188,9 @@ async fn rocket() -> _ {
 
     sqlx::migrate!().run(&app.db).await.expect("Failed to apply migrations :(");
 
-    let base_route = if cfg!(debug_assertions) { "/backend/" } else { "/" };
-
-    rocket::build()
+    let mut rocket = rocket::build()
         .manage(app)
-        .mount(base_route, routes![
+        .mount("/backend/", routes![
             discord_login,
             discord_logout,
             discord_callback,
@@ -211,7 +210,13 @@ async fn rocket() -> _ {
             );
             
             rocket.attach(OAuth2::<Discord>::custom(HyperRustlsAdapter::default(), config))
-        }))
+        }));
+    
+    if !cfg!(debug_assertions) {
+        rocket = rocket.mount("/", FileServer::from("./static"));
+    }
+    
+    rocket
 }
 
 #[get("/login/discord")]
@@ -480,7 +485,7 @@ async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) ->
 }
 
 #[post("/minecraft/ban", data = "<ban_data>")]
-async fn minecraft_ban(app: &State<App>, api_key: APIKey, ban_data: Json<BanData>) -> Status {
+async fn minecraft_ban(app: &State<App>, _api_key: APIKey, ban_data: Json<BanData>) -> Status {
     query!("UPDATE users SET banned = true WHERE minecraft_uuid = $1", ban_data.uuid)
         .fetch_optional(&app.db)
         .await
