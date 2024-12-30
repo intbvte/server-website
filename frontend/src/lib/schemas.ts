@@ -168,7 +168,7 @@ export const serverStatusSchema = z.union([
 		online: z.literal(true),
 		protocol: z.object({ version: z.number(), name: z.string() }),
 		hostname: z.string(),
-		// map: z.optional(z.object({ raw: z.string(), clean: z.string(), html: z.string() })),
+		map: z.optional(z.object({ raw: z.string(), clean: z.string(), html: z.string() })),
 		eula_blocked: z.boolean()
 	}),
 	z.object({

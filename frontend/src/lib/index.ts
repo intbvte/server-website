@@ -3,10 +3,10 @@
 import type { z } from 'zod';
 
 export async function safeFetchWithSchema<T extends z.ZodTypeAny>(
-	req: Request|string,
+	req: Request | string,
 	schema: T,
-  fetcher:(input: RequestInfo | URL, init?: RequestInit) => Promise<Response> = fetch
-): Promise<{ data: z.infer<T>; success: true } | { success: false, data: null }> {
+	fetcher: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response> = fetch
+): Promise<{ data: z.infer<T>; success: true } | { success: false; data: null }> {
 	const data = await fetcher(req);
 	if (!data.ok) return { success: false, data: null };
 	const res = await schema.safeParseAsync(await data.json());
@@ -14,9 +14,9 @@ export async function safeFetchWithSchema<T extends z.ZodTypeAny>(
 }
 
 export async function fetchWithSchema<T extends z.ZodTypeAny>(
-	req: Request|string,
+	req: Request | string,
 	schema: T,
-  fetcher:(input: RequestInfo | URL, init?: RequestInit) => Promise<Response> = fetch
+	fetcher: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response> = fetch
 ): Promise<z.infer<T>> {
 	const data = await fetcher(req);
 	return await schema.parseAsync(await data.json());
