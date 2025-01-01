@@ -30,8 +30,8 @@
 	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
 		<div class="sm:col-span-2 flex flex-col gap-2">
 			<Status ip="railways.ithundxr.dev"/>
-			{#if data.user && !data.user.minecraft_uuid}
-				<Whitelist/>
+			{#if !data.user || !data.user.minecraft_uuid}
+				<Whitelist user={data.user}/>
 			{/if}
 		</div>
 			<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
