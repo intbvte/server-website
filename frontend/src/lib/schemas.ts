@@ -69,20 +69,12 @@ export const versionsSchema = z.array(
 			})
 		),
 		dependencies: z.array(
-			z.union([
-				z.object({
-					version_id: z.string(),
-					project_id: z.string(),
-					file_name: z.null(),
-					dependency_type: z.string()
-				}),
-				z.object({
-					version_id: z.null(),
-					project_id: z.null(),
-					file_name: z.string(),
-					dependency_type: z.string()
-				})
-			])
+			z.object({
+				version_id: z.nullable(z.string()),
+				project_id: z.nullable(z.string()),
+				file_name: z.nullable(z.string()),
+				dependency_type: z.string()
+			})
 		)
 	})
 );
