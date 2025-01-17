@@ -314,7 +314,9 @@ async fn discord_callback(app: &State<App>, token: TokenResponse<Discord>, cooki
 }
 
 #[post("/minecraft/username/change", data = "<whitelist_data>")]
-async fn minecraft_username_change(app: &State<App>, session: Session, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
+async fn minecraft_username_change(app: &State<App>, session_option: Option<Session>, whitelist_data: Form<Whitelist>) -> Result<(), ApiError> {
+    let session = session_option.ok_or_else(|| ApiError::OptionError)?;
+
     let query_optional = query!("SELECT minecraft_uuid, banned FROM users WHERE discord_id = $1", &session.user.discord_id)
         .fetch_optional(&app.db)
         .await?;
@@ -324,7 +326,7 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
             return Err(ApiError::BadRequest);
         }
         
-        return match username_to_uuid_minecraft(app, session.clone(), &whitelist_data.clone().username).await {
+        return match username_to_uuid_minecraft(app, Some(session.clone()), &whitelist_data.clone().username).await {
             Ok(profile) => {
                 let result = query!("UPDATE users SET minecraft_uuid = $1 WHERE discord_id = $2", profile.id, session.user.discord_id)
                     .execute(&app.db)
@@ -333,8 +335,10 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
                 match result {
                     Ok(_) => {
                         if let Some(uuid) = query.minecraft_uuid {
-                            let username = &id_to_username_minecraft(app, session.clone(), &uuid.to_string()).await.minecraft_username;
-                            minecraft::minecraft_whitelist_remove(app, username).await;
+                            let username = id_to_username_minecraft(app, Some(session.clone()), &uuid.to_string()).await;
+                            if let Ok(json) = username {
+                                minecraft::minecraft_whitelist_remove(app, &json.minecraft_username).await;
+                            }
                         }
 
                         minecraft::minecraft_whitelist(app, &whitelist_data).await;
@@ -357,12 +361,15 @@ async fn minecraft_username_change(app: &State<App>, session: Session, whitelist
 }
 
 #[get("/users/@me")]
-async fn get_user_info(session: Session) -> Json<User> {
-    Json(session.user)
+async fn get_user_info(session_option: Option<Session>) -> Result<Json<User>, ApiError> {
+    let session = session_option.ok_or_else(|| ApiError::OptionError)?;
+    Ok(Json(session.user))
 }
 
 #[get("/users/username_to_uuid/minecraft/<username>")]
-async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username: &str) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
+async fn username_to_uuid_minecraft(app: &State<App>, session_option: Option<Session>, username: &str) -> Result<Json<MinecraftUsernameToUuid>, ApiError> {
+    let session = session_option.ok_or_else(|| ApiError::OptionError)?;
+
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     username.hash(&mut hasher);
@@ -401,7 +408,9 @@ async fn username_to_uuid_minecraft(app: &State<App>, session: Session, username
 }
 
 #[get("/users/id_to_username/minecraft/<uuid>")]
-async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: &str) -> Json<MinecraftUserData> {
+async fn id_to_username_minecraft(app: &State<App>, session_option: Option<Session>, uuid: &str) -> Result<Json<MinecraftUserData>, ApiError> {
+    let session = session_option.ok_or_else(|| ApiError::OptionError)?;
+
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     uuid.hash(&mut hasher);
@@ -414,18 +423,16 @@ async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: &str
         if let Some((data, timestamp)) = cache.get(&cache_key) {
             if timestamp.elapsed() < cache_duration {
                 let deserialized: MinecraftUserData = serde_json::from_str(&data).unwrap();
-                return Json(deserialized.clone());
+                return Ok(Json(deserialized.clone()));
             }
         }
     }
 
     let mc_profile = app.https.get(format!("https://sessionserver.mojang.com/session/minecraft/profile/{}", uuid))
         .send()
-        .await
-        .unwrap()
+        .await?
         .json::<MinecraftUuidToUsername>()
-        .await
-        .unwrap();
+        .await?;
 
     let data = MinecraftUserData {
         minecraft_username: mc_profile.name,
@@ -437,11 +444,13 @@ async fn id_to_username_minecraft(app: &State<App>, session: Session, uuid: &str
         write_cache.insert(cache_key, (serde_json::to_string(&data).unwrap(), Instant::now()));
     }
 
-    Json(data)
+    Ok(Json(data))
 }
 
 #[get("/users/id_to_username/discord/<id>")]
-async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) -> Json<DiscordUserData> {
+async fn id_to_username_discord(app: &State<App>, session_option: Option<Session>, id: &str) -> Result<Json<DiscordUserData>, ApiError> {
+    let session = session_option.ok_or_else(|| ApiError::OptionError)?;
+
     let mut hasher = DefaultHasher::new();
     session.hash(&mut hasher);
     id.hash(&mut hasher);
@@ -454,18 +463,16 @@ async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) ->
         if let Some((data, timestamp)) = cache.get(&cache_key) {
             if timestamp.elapsed() < cache_duration {
                 let deserialized: DiscordUserData = serde_json::from_str(&data).unwrap();
-                return Json(deserialized.clone());
+                return Ok(Json(deserialized.clone()));
             }
         }
     }
 
     let discord_user = app.https.get(format!("https://discord.com/api/users/{}", session.user.discord_id))
         .send()
-        .await
-        .unwrap()
+        .await?
         .json::<DiscordCallback>()
-        .await
-        .unwrap();
+        .await?;
 
     let data = DiscordUserData {
         discord_username: discord_user.username
@@ -476,11 +483,13 @@ async fn id_to_username_discord(app: &State<App>, session: Session, id: &str) ->
         write_cache.insert(cache_key, (serde_json::to_string(&data).unwrap(), Instant::now()));
     }
 
-    Json(data)
+    Ok(Json(data))
 }
 
 #[post("/minecraft/ban", data = "<ban_data>")]
-async fn minecraft_ban(app: &State<App>, api_key: APIKey, ban_data: Json<BanData>) -> Status {
+async fn minecraft_ban(app: &State<App>, api_key: Option<APIKey>, ban_data: Json<BanData>) -> Status {
+    api_key.ok_or_else(|| ApiError::Unauthorized)?;
+
     query!("UPDATE users SET banned = true WHERE minecraft_uuid = $1", ban_data.uuid)
         .fetch_optional(&app.db)
         .await
