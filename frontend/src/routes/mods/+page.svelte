@@ -9,7 +9,7 @@
 				data.projectMap.get(project.project_id) ?? {
 					project_id: null,
 					version_id: null,
-					file_name: `Unable to load project data. id: ${project.project_id}`,
+					file_name: `Unable to load project data`,
 					dependency_type: project.dependency_type
 				}
 			);
