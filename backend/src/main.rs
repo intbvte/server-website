@@ -492,7 +492,7 @@ async fn id_to_username_discord(app: &State<App>, session_option: Option<Session
 }
 
 #[post("/minecraft/ban", data = "<ban_data>")]
-async fn minecraft_ban(app: &State<App>, _api_key: Option<APIKey>, ban_data: Json<BanData>) -> Result<Status, ApiError> {
+async fn minecraft_ban(app: &State<App>, api_key: Option<APIKey>, ban_data: Json<BanData>) -> Result<Status, ApiError> {
     api_key.ok_or_else(|| ApiError::Unauthorized)?;
     query!("UPDATE users SET banned = true WHERE minecraft_uuid = $1", ban_data.uuid)
         .fetch_optional(&app.db)
