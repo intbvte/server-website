@@ -5,18 +5,18 @@ import { dev } from '$app/environment';
 
 export const ssr = false;
 export const prerender = true;
+export const trailingSlash = 'always';
 
 export async function load({ fetch }) {
 	const req = fetch(backendUrl + '/users/@me', {
-		credentials: "include",
-		mode: "same-origin"
+		credentials: 'include',
+		mode: 'same-origin'
 	});
-	if (dev)
-		req.catch(console.error);
+	if (dev) req.catch(console.error);
 	const response = await req;
 	let user: z.infer<typeof userSchema> | null = null;
 	if (response.ok) {
-		const data = await response.json()
+		const data = await response.json();
 		user = userSchema.parse(data);
 	}
 	return { user };
