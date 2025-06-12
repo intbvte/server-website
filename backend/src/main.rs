@@ -392,7 +392,7 @@ async fn username_to_uuid_minecraft(app: &State<App>, session_option: Option<Ses
         }
     }
 
-    let request = app.https.get(format!("https://api.mojang.com/users/profiles/minecraft/{}", username))
+    let request = app.https.get(format!("https://api.minecraftservices.com/minecraft/profile/lookup/name/{}", username))
         .send()
         .await;
 
