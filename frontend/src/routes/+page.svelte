@@ -33,7 +33,7 @@
 	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2" />
 	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
 		<div class="sm:col-span-2 flex flex-col gap-2">
-			<Status ip="railways.ithundxr.dev" />
+			<Status ip="s2.railways.dev" />
 			{#if !data.user || !data.user.minecraft_uuid}
 				<Whitelist user={data.user} />
 			{/if}
@@ -45,7 +45,7 @@
 		<div
 			class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto"
 		>
-			<!-- <a href="https://ctm.railways.ithundxr.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
+			<!-- <a href="https://ctm.s2.railways.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
 			<a href="https://map.s2.railways.dev/" target="_blank" class="w-full">
 				<img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt="" /></a
 			>
