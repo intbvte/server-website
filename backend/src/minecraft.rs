@@ -10,7 +10,8 @@ use crate::Whitelist;
 pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whitelist>) {
     run_command(
         app,
-        format!("whitelist add {}", whitelist_data.username),
+        false,
+        whitelist_data.username,
         format!("A unknown error occurred while whitelisting user {}", whitelist_data.username),
     ).await
 }
@@ -18,23 +19,40 @@ pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whiteli
 pub async fn minecraft_whitelist_remove(app: &State<App>, username: &str) {
     run_command(
         app,
-        format!("whitelist remove {}", username),
+        true,
+        username,
         format!("A unknown error occurred while un-whitelisting user {}", username),
     ).await
 }
 
-async fn run_command(app: &State<App>, command: String, error_message: String) {
+async fn run_command(app: &State<App>, remove: bool, user: String, error_message: String) {
     let server_id = env::var("EXAROTON_SERVER_ID").expect("Missing Required Env Var EXAROTON_SERVER_ID");
     let exaroton_key = env::var("EXAROTON_API_KEY").expect("Missing Required Env Var EXAROTON_API_KEY");
 
-    let response = app.https.post(format!("https://api.exaroton.com/v1/servers/{}/command/", server_id))
-        .header("Content-Type", "application/json")
-        .header("Authorization", format!("Bearer {}", exaroton_key))
-        .json(&json!({
-            "command": command
-        }))
-        .send()
-        .await;
+    let url = format!(
+        "https://api.exaroton.com/v1/servers/{}/playerlists/whitelist",
+        server_id
+    );
+
+    let response = if remove {
+        app.https.delete(&url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", format!("Bearer {}", exaroton_key))
+            .json(&json!({
+                "entries": [user]
+            }))
+            .send()
+            .await
+    } else {
+        app.https.put(&url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", format!("Bearer {}", exaroton_key))
+            .json(&json!({
+                "entries": [user]
+            }))
+            .send()
+            .await
+    }
 
     match response {
         Ok(_) => (),
