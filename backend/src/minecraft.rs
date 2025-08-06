@@ -23,10 +23,14 @@ pub async fn minecraft_whitelist_remove(app: &State<App>, username: &str) {
 }
 
 async fn run_command(app: &State<App>, command: String, error_message: String) {
-    let server_id = env::var("PTERODACTYL_SERVER_ID").expect("Missing Required Env Var PTERODACTYL_SERVER_ID");
+    let server_id = env::var("EXAROTON_SERVER_ID").expect("Missing Required Env Var EXAROTON_SERVER_ID");
+    let exaroton_key = env::var("EXAROTON_API_KEY").expect("Missing Required Env Var EXAROTON_API_KEY");
 
-    let response = app.pterodactyl.get_server(server_id)
-        .send_command(command)
+    let response = app.https.post(format!("https://api.exaroton.com/v1/servers/{}/command/", server_id))
+        .header("Content-Type", "application/json")
+        .header("Authorization", format!("Bearer {}", exaroton_key))
+        .json(&json!({ command }))
+        .send()
         .await;
 
     match response {
