@@ -30,7 +30,9 @@ async fn run_command(app: &State<App>, command: String, error_message: String) {
     let response = app.https.post(format!("https://api.exaroton.com/v1/servers/{}/command/", server_id))
         .header("Content-Type", "application/json")
         .header("Authorization", format!("Bearer {}", exaroton_key))
-        .json(&json!({ command }))
+        .json(&json!({
+            "command": command
+        }))
         .send()
         .await;
 
