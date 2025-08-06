@@ -29,44 +29,21 @@
 		});
 </script>
 
-<main class="max-w-screen-lg w-full mx-auto flex items-center flex-col my-10 gap-10 relative">
-	<img src="title.png" alt="Steam 'n' Rails SMP Season 2" class="max-w-2xl w-[95%] px-2" />
+<main class="max-w-screen-lg w-full h-screen mx-auto flex items-center justify-center flex relative">
 	<div class="grid grid-cols sm:grid-cols-2 gap-3 w-full max-w-sm drop-shadow-xl shadow-black">
 		<div class="sm:col-span-2 flex flex-col gap-2">
-			<Status ip="s2.railways.dev" />
+			<Status ip="m.jar.run" />
 			{#if !data.user || !data.user.minecraft_uuid}
 				<Whitelist user={data.user} />
 			{/if}
 		</div>
-		<a href="/docs/rules" class="mc-button text-white p-2 text-center pixelated"> Rules </a>
-		<a href="/docs/faq" class="mc-button text-white p-2 text-center pixelated"> FAQ </a>
-		<a href="/mods" class="mc-button text-white p-2 text-center pixelated"> Modlist </a>
-		<a href="/docs/guilds" class="mc-button text-white p-2 text-center pixelated"> Economy </a>
 		<div
 			class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto"
 		>
-			<!-- <a href="https://ctm.s2.railways.dev/" target="_blank" class="w-full"> <img src="/ui/trackmap_logo.png" width="48" class="pixelated mx-auto px-2" alt=""></a> -->
-			<a href="https://map.s2.railways.dev/" target="_blank" class="w-full">
-				<img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt="" /></a
-			>
-			<a href="https://modrinth.com/modpack/steam-n-rails-modpack" target="_blank" class="w-full">
-				<img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt="" /></a
-			>
-			<a href="https://opencollective.com/railways" target="_blank" class="w-full">
-				<img
-					src="/ui/opencollective_logo.png"
-					width="48"
-					class="pixelated mx-auto px-2"
-					alt=""
-				/></a
-			>
-			<a
-				href="https://discord.gg/create-steam-n-rails-706277846389227612"
-				target="_blank"
-				class="w-full"
-			>
-				<img src="/ui/discord_logo.png" width="48" class="pixelated mx-auto px-2" alt="" /></a
-			>
+			<a href="https://modrinth.com/modpack/steam-punk" target="_blank" class="w-full space-y-2 content-center">
+				<img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt="" />
+				<p class="pixelated mx-auto px-2 text-white">Modpack</p>
+			</a>
 		</div>
 		{#if data.user && data.user.minecraft_uuid}
 			<div

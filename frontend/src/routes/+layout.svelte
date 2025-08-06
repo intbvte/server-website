@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>Steam 'n' Rails SMP S2</title>
+	<title>Auth Server</title>
 </svelte:head>
 
 <div class="w-full bg-cover min-h-svh bg-center pixelated overflow-hidden font-minecraft">
