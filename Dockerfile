@@ -10,10 +10,7 @@ COPY backend/ .
 
 ENV SQLX_OFFLINE=true
 
-RUN --mount=type=cache,id=cargo,target=/build/target \
-    --mount=type=cache,id=cargo,target=/usr/local/cargo/registry \
-    --mount=type=cache,id=cargo,target=/usr/local/cargo/git \
-    set -eux; \
+RUN set -eux; \
     cargo build --release; \
     objcopy --compress-debug-sections target/release/$pkg ./main
 
@@ -29,8 +26,8 @@ WORKDIR /frontend
 
 COPY frontend/ .
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm build
+RUN pnpm install
+RUN pnpm build
 
 ################################################################################
 
