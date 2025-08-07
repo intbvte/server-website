@@ -1,0 +1,5 @@
+# Connection Guide
+
+1. Before connecting, make sure you're whitelisted on the server. Authorization is done via Discord. No personal information is accessed or stored.
+2. Once authorized with Discord and linked to your Minecraft account, launch the modpack you installed in the <a href="/docs/install">Installation Guide</a>.
+3. Use `m.jar.run` to join the server. It make take some time to load in if the server is waking up.

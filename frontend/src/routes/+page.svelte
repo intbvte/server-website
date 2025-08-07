@@ -37,12 +37,16 @@
 				<Whitelist user={data.user} />
 			{/if}
 		</div>
+		<a href="/docs/install" class="mc-button text-white p-2 text-center pixelated"> Modpack Installation </a>
+		<a href="/docs/connect" class="mc-button text-white p-2 text-center pixelated"> Connection Guide </a>
 		<div
 			class="flex justify-between py-1 sm:col-span-2 mc-dark divide-x-2 divide-[#202020] mx-auto"
 		>
 			<a href="https://modrinth.com/modpack/steam-punk" target="_blank" class="w-full space-y-2 content-center">
 				<img src="/ui/modrinth_logo.png" width="48" class="pixelated mx-auto px-2" alt="" />
-				<p class="pixelated mx-auto px-2 text-white">Modpack</p>
+			</a>
+			<a href="https://map.jar.run" target="_blank" class="w-full space-y-2 content-center">
+				<img src="/ui/bluemap_logo.png" width="48" class="pixelated mx-auto px-2" alt="" />
 			</a>
 		</div>
 		{#if data.user && data.user.minecraft_uuid}

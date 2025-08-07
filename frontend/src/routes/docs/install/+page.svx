@@ -1,0 +1,6 @@
+# Installation Guide
+
+1. First, download the <a href="https://modrinth.com/modpack/steam-punk" target="_blank">SteamPunks</a> modpack. Modrinth will require you to manually download missing mods which may be a hassle.
+2. Once the modpack was downloaded, import it into a mod manager or rawdog it if you know how to.
+3. Before launching the modpack, make sure to remove/delete the Luna mod (search for "Luna" in the mods folder).
+4. Launch the modpack and follow the <a href="/docs/connect">Connection Guide</a>.
