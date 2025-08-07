@@ -9,8 +9,9 @@ export async function safeFetchWithSchema<T extends z.ZodTypeAny>(
 ): Promise<{ data: z.infer<T>; success: true } | { success: false; data: null }> {
 	const data = await fetcher(req);
 	if (!data.ok) return { success: false, data: null };
-	const res = await schema.safeParseAsync(await data.json());
-	return { success: res.success, data: res.data };
+	// const res = await schema.safeParseAsync(await data.json());
+	const res = await data.json();
+	return { success: true, data: res };
 }
 
 export async function fetchWithSchema<T extends z.ZodTypeAny>(
