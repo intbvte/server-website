@@ -8,54 +8,33 @@ use crate::app::App;
 use crate::Whitelist;
 
 pub async fn minecraft_whitelist(app: &State<App>, whitelist_data: &Form<Whitelist>) {
-    run_command(
-        app,
-        false,
-        &whitelist_data.username,
-        format!("A unknown error occurred while whitelisting user {}", whitelist_data.username),
-    ).await
-}
-
-pub async fn minecraft_whitelist_remove(app: &State<App>, username: &str) {
-    run_command(
-        app,
-        true,
-        username,
-        format!("A unknown error occurred while un-whitelisting user {}", username),
-    ).await
-}
-
-async fn run_command(app: &State<App>, remove: bool, user: &str, error_message: String) {
-    let server_id = env::var("EXAROTON_SERVER_ID").expect("Missing Required Env Var EXAROTON_SERVER_ID");
-    let exaroton_key = env::var("EXAROTON_API_KEY").expect("Missing Required Env Var EXAROTON_API_KEY");
-
-    let url = format!(
-        "https://api.exaroton.com/v1/servers/{}/playerlists/whitelist",
-        server_id
-    );
-
-    let response = if remove {
-        app.https.delete(&url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", exaroton_key))
-            .json(&json!({
-                "entries": [user]
-            }))
-            .send()
-            .await
-    } else {
-        app.https.put(&url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", exaroton_key))
-            .json(&json!({
-                "entries": [user]
-            }))
-            .send()
-            .await
-    };
+    let response = app.https.put(format!("{}/playerlists/whitelist/", &app.exaroton_url))
+        .header("Content-Type", "application/json")
+        .header("Authorization", format!("Bearer {}", &app.exaroton_key))
+        .json(&json!({
+            "entries": [&whitelist_data.username]
+        }))
+        .send()
+        .await;
 
     match response {
         Ok(_) => (),
-        Err(err) => { error!("{} \n {}", error_message, err) }
+        Err(err) => { error!("{} \n {}", format!("Error while whitelisting {}", whitelist_data.username), err) }
+    }
+}
+
+pub async fn minecraft_whitelist_remove(app: &State<App>, username: &str) {
+    let response = app.https.delete(format!("{}/playerlists/whitelist", &app.exaroton_url))
+        .header("Content-Type", "application/json")
+        .header("Authorization", format!("Bearer {}", &app.exaroton_key))
+        .json(&json!({
+            "entries": [&username]
+        }))
+        .send()
+        .await;
+
+    match response {
+        Ok(_) => (),
+        Err(err) => { error!("{} \n {}", format!("Error while un-whitelisting {}", username), err) }
     }
 }
